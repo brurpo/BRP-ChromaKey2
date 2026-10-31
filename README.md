@@ -76,7 +76,7 @@ See [BUILDING.md](BUILDING.md). In short: Windows 10/11 x64, PowerShell, and abo
 
 The code in this repository is released under the [MIT License](LICENSE): use it, change it and share it, as long as you keep the copyright notice.
 
-**The models are a different story.** CorridorKey 2.0 is licensed for **non-commercial use only** (CC BY-NC-SA 4.0 plus Corridor Digital's additional terms), and that applies to anything you key with this app. SAM 3.1, ONNX Runtime, DirectML and FFmpeg have their own terms too. Read [LICENSING.md](LICENSING.md) before you distribute the app or use it for paid work.
+**The models keep their own licenses.** CorridorKey 2.0 uses the Corridor Key Licence (CC BY-NC-SA 4.0 plus Corridor Digital's additional terms). The images and video you key with it are yours, and you may use them commercially. The tool itself can't be sold, offered as a paid service or built into commercial software without Corridor Digital's agreement, and companies with more than US $20M revenue need a CorridorKey plugin seat per user. SAM 3.1, ONNX Runtime, DirectML and FFmpeg have their own terms too. See [LICENSING.md](LICENSING.md).
 
 ## Credits
 

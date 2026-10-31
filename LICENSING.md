@@ -12,7 +12,7 @@ The app downloads its models from [brurpo/CorridorKey-BRP-ONNX](https://huggingf
 
 | Model | Used for | License |
 | --- | --- | --- |
-| CorridorKey 2.0 (Corridor Digital) | Keying | **Corridor Key Licence 2.0**: CC BY-NC-SA 4.0 plus additional terms. Non-commercial; derivatives must use the same license. |
+| CorridorKey 2.0 (Corridor Digital) | Keying | **Corridor Key Licence 2.0**: CC BY-NC-SA 4.0 plus additional terms (see below) |
 | C-RADIOv4-SO400M (NVIDIA) | CorridorKey foundation features | NVIDIA Open Model License |
 | MoGe-2 ViT-B (Microsoft) | CorridorKey foundation features | MIT (DINOv2 parts: Apache 2.0) |
 | RVM small16 (Google DeepMind) | CorridorKey foundation features | Apache 2.0 code, CC BY 4.0 weights |
@@ -21,9 +21,17 @@ The app downloads its models from [brurpo/CorridorKey-BRP-ONNX](https://huggingf
 | Opus-MT ROMANCE-en (University of Helsinki) | Portuguese prompt translation | Apache 2.0 |
 | TransNetV2 | Scene detection | MIT |
 
-The practical consequence: **CorridorKey 2.0 may only be used for non-commercial purposes**, so keying with this app is non-commercial unless you have separate permission from Corridor Digital. The CorridorKey graphs we publish (including the re-exported "native" Stage1/Stage2 graphs) are derivatives and keep the Corridor Key Licence 2.0.
+What the Corridor Key Licence means in practice (the full text in `licenses/models/CORRIDORKEY_LICENSE.txt` is what counts):
 
-Parts of the keying pipeline in `crates/ck-native` (input preparation, temporal windows and output decoding) were written to reproduce CorridorKey 2.0's reference implementation. If you plan to redistribute or commercialize a modified version, review the Corridor Key Licence's terms on derivative works first.
+- **Your results are yours.** Images and video you produce with CorridorKey can be used commercially, including in paid projects.
+- **The tool stays free.** CorridorKey, and anything built on it that is released, must be available free of charge (donations are fine). It can't be resold, repackaged, put behind a paywall or offered as a paid API.
+- **Commercial software** that wants to include CorridorKey needs a separate written agreement with Corridor Digital (contact@corridordigital.com).
+- **Large organisations:** a company with more than US $20M annual revenue needs a CorridorKey plugin seat for each person using it (https://corridorkey.com).
+- **Attribution and share-alike:** derivatives keep the "CorridorKey" name and the same licence.
+
+The CorridorKey graphs we publish (including the re-exported "native" Stage1/Stage2 graphs) are derivatives and keep the Corridor Key Licence 2.0.
+
+Parts of the keying pipeline in `crates/ck-native` (input preparation, temporal windows and output decoding) were written to reproduce CorridorKey 2.0's reference implementation. If you redistribute a modified version, review the Corridor Key Licence's terms on derivative works first.
 
 Full texts, publishers, pinned upstream revisions and original checkpoint hashes are in `licenses/models/` (`NOTICE.txt` and `MODEL_LICENSES.json`).
 
