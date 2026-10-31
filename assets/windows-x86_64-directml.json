@@ -1,0 +1,505 @@
+{
+  "schema_version": 1,
+  "id": "windows-x86_64-directml",
+  "version": "2026.10.31.1",
+  "note": "Model files only. tools/package.ps1 adds the native application and runtime files it packages.",
+  "files": [
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/pack.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/pack.json",
+      "size": 2780,
+      "sha256": "2de7752317e90b83118c0f79ac025af320e674e2f914dc8d362e546e07100609"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/rvm/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/rvm/model.onnx",
+      "size": 788204,
+      "sha256": "3fae2a2dd83a2961f9fe75beac3c133a958cf2cdc3ea95b56698b68631cdf661"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/rvm/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/rvm/model.onnx.data",
+      "size": 132893696,
+      "sha256": "8ba0495beeca36e6eb80bfa6acb267a20b7b0b6c271e07f3735641eb1157dc96"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/rvm/manifest.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/rvm/manifest.json",
+      "size": 867,
+      "sha256": "c7c09434dda7346ec879f2bd90946cf6fb2284f32ddb07e3e630671281faff59"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/cradio/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/cradio/model.onnx",
+      "size": 373947,
+      "sha256": "e97b61a34e663117cefc9162e1ab0f47432c699cd3cabceaa1e994f9363fbcfc"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/cradio/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/cradio/model.onnx.data",
+      "size": 1724958144,
+      "sha256": "935976253d58e7f5d3b630748e0d63edebc393e8a27605f7768f511a4f6029ef"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/cradio/manifest.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/cradio/manifest.json",
+      "size": 540,
+      "sha256": "086c720e8e64301250f020d50d7de601edf608e538a7a565d0960b2404a1eafd"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/moge/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/moge/model.onnx",
+      "size": 158194,
+      "sha256": "6f962710b744c02913bfb434d8ac992d9564ea9e18910cd7a66c441c4209e504"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/moge/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/moge/model.onnx.data",
+      "size": 351049728,
+      "sha256": "fe1f242a5e94f1fde644bc3bc98bd83c9e1158feea7a4f5c1a8c3c7d4c96a8e8"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/moge/manifest.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/moge/manifest.json",
+      "size": 533,
+      "sha256": "a44c1b7cb5227438e74c750b912ad7e152225008c75da0375e7ae30f9156beb5"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage1/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage1/model.onnx",
+      "size": 3944132,
+      "sha256": "013154ded8e3121b54c8e72766ab40009980a3a3278475fa89c0aa1ce0463cdf"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage1/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage1/model.onnx.data",
+      "size": 1848119808,
+      "sha256": "ce4ca1337cbbc72e4d9cc7f4d4cb0bcbe8a57c7219f2d4d3daaa2047826c63cc"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage1/manifest.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage1/manifest.json",
+      "size": 2417,
+      "sha256": "e4054ddf3a91cddf627248af506b7ed0a0a6fb531013912a7d4f46224c807bd6"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage1/model.directml.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage1/model.directml.onnx",
+      "size": 5903539,
+      "sha256": "5a597b6a4ecced59a946b3c0dd11efef0a94ca3573dee48e829db216971f3e34"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage1/manifest.directml.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage1/manifest.directml.json",
+      "size": 2376,
+      "sha256": "16ccf037522ccd46dc1e827a22d97475d67c567e7e9fdff07707114f102928c5"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage2/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage2/model.onnx",
+      "size": 3324292,
+      "sha256": "a353f2bd827169ff92ddb3e2ded4d452d6f8ea059d2c25a7a140cd95d14c5963"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage2/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage2/model.onnx.data",
+      "size": 807179264,
+      "sha256": "c6d268cb6e8f17e47936fe7ac61bd42c49e9346d8f9e7a59e5983fcdb38743e5"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage2/manifest.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage2/manifest.json",
+      "size": 1001,
+      "sha256": "080af185eff2aa06d5190651996bd9318a5564649cc19ccb1fdc04fac4b1f073"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage2/model.directml.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage2/model.directml.onnx",
+      "size": 3179321,
+      "sha256": "6a350dae567412ffd8dd4c30f4f2e3bd1a645dedf59fe3bd5ac77a15d7ff56cc"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/dynamic/stage2/manifest.directml.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/corridorkey/dynamic/stage2/manifest.directml.json",
+      "size": 1035,
+      "sha256": "07dcec73593a1e96ba38cf2fddee925927432699bf142b04dc95c55d3bb6e468"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/video_config.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/video_config.json",
+      "size": 2513,
+      "sha256": "d6b9d395c6a9c2df0de288bf401efdd73dd0138bf23150ebbd38d62337a053c9"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/constants/no_mem_embed.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/constants/no_mem_embed.npy",
+      "size": 1152,
+      "sha256": "d1ec8e2c3ce6ae40e202233d19218dd0ccec13d9966862db2dc964eb88014629"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/constants/maskmem_tpos_enc.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/constants/maskmem_tpos_enc.npy",
+      "size": 1920,
+      "sha256": "7783a633440db7eb14000c4ef00ec69eb28e786a3df6a371d8aff7ad949a51a8"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/constants/obj_ptr_tpos_proj_weight.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/constants/obj_ptr_tpos_proj_weight.npy",
+      "size": 65664,
+      "sha256": "2348049f1fe4cc7a3c022ec45c1bed2afdf29210a3596fd03f3e803b0098241d"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/constants/obj_ptr_tpos_proj_bias.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/constants/obj_ptr_tpos_proj_bias.npy",
+      "size": 384,
+      "sha256": "cb331af78f6919dab904d552920862bdab8a36499ea9acbb0049b0fd7eb66da3"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/constants/current_pos.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/constants/current_pos.npy",
+      "size": 4194432,
+      "sha256": "45ee47e8c70ee3d5d5b5685890a93573208def91fc0338ebb5a793e4a11206d9"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/image_encoder/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/image_encoder/model.onnx",
+      "size": 528189,
+      "sha256": "a71c6bd88d2059a05748189d6b17ba2fc61d4aaabf3331d7653d92760a627adb"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/image_encoder/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/image_encoder/model.onnx.data",
+      "size": 137353856,
+      "sha256": "fec429e0a7540470b6742a81bac85c22a8ed9800faa291e1520ce2f74e0dedd4"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/memory_attention/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/memory_attention/model.onnx",
+      "size": 588355,
+      "sha256": "210d57673b4434bd6cae27ef426e28f009d9ade22cf00ffe579a91105fe87952"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/memory_attention/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/memory_attention/model.onnx.data",
+      "size": 27883520,
+      "sha256": "552fa2f2f8fce610490815c4085e855e5a9eeddad9e0c0baa4e79f8a9869b427"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/memory_encoder/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/memory_encoder/model.onnx",
+      "size": 52515,
+      "sha256": "8cf47ebba693bb6c214620a14531f82d3b17d12de0fa2ccafc154c2f660cb3fb"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/memory_encoder/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/memory_encoder/model.onnx.data",
+      "size": 5537024,
+      "sha256": "92897db396323c734772b2781de62a74365922ba9946efe77a4ee1e2e4c87e87"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/video_heads/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/video_heads/model.onnx",
+      "size": 304624,
+      "sha256": "ca44fa1d7092a2f08c83604bfbb4e4df4c8bc4622cba5c25292b9bc87c0e7347"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam2/video_heads/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/sam2/video_heads/model.onnx.data",
+      "size": 17568768,
+      "sha256": "56bf0a3c0e5786f1ca35b10b534a1d01054d847bcc5b2e27f49ccd117ace1902"
+    },
+    {
+      "group": "transnet",
+      "path": "models/transnet/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/0d9a783ce3c3cfa445754a06823779b6831e113d/models/transnet/model.onnx",
+      "size": 31248533,
+      "sha256": "9d128d16f642c2dd60d3cb8e007c7b3a389d74ee3a644a0f740646a0f1405dd9"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/native/stage1/dyn16.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/corridorkey/native/stage1/dyn16.onnx",
+      "size": 2370440,
+      "sha256": "b013d165eca39fb0c490044d0aedb94948647d2bd74ff0be86ff916abc8a27c1"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/native/stage1/dyn16.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/corridorkey/native/stage1/dyn16.onnx.data",
+      "size": 924059904,
+      "sha256": "8bbeda8d5ac2a404e413f63a19cd943149e8489dc02d05127d8b5a8474c84370"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/native/stage2/dyn16.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/corridorkey/native/stage2/dyn16.onnx",
+      "size": 1862719,
+      "sha256": "b1c542c0719ab69639b88578c1ccae5d3bb3ddc33d05bdf857820752acede668"
+    },
+    {
+      "group": "ck1080",
+      "path": "models/corridorkey/native/stage2/dyn16.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/corridorkey/native/stage2/dyn16.onnx.data",
+      "size": 403589632,
+      "sha256": "7e125f2c795b4861fc83d2050325bd83ccc76fd25c43fe00a1e95b88cdb8c043"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/detector/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/detector/fp16/model.onnx",
+      "size": 725616,
+      "sha256": "77f3338d3c1bf8e7e81bddafc03d59b23dcd60190d3013a975cce0bb7c7beaf0"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/detector/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/detector/fp16/model.onnx.data",
+      "size": 88934016,
+      "sha256": "b74e0773c7856d349d0aad24347414c513bbce19aa5903addd51405f2b41231c"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/frame/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/frame/fp16/model.onnx",
+      "size": 627168,
+      "sha256": "84342a54820b8bb4c3867d8a9b6ad603c54e030865f255b1a50fce6f61379c13"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/frame/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/frame/fp16/model.onnx.data",
+      "size": 948414464,
+      "sha256": "788b2395ce68296a34ea106d3309de77c572c76f60333353ca773698a274427d"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/text/bpe_merges.txt",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/text/bpe_merges.txt",
+      "size": 573499,
+      "sha256": "90aa61778643546ebe08240e06aea46e138921121ea606fd0c8bb7aef739fd9d"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/text/fp32c/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/text/fp32c/model.onnx",
+      "size": 332287,
+      "sha256": "01a4b863f7dfac31e52fe3a17e2daa6b49df6bfd8353188da8450dbf6315d9d1"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/text/fp32c/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/text/fp32c/model.onnx.data",
+      "size": 1412902912,
+      "sha256": "6095a685ce59fea86cf74249619d2e175bb33c6c5cf0ba02e359c868e8fd2435"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/config.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/config.json",
+      "size": 1025,
+      "sha256": "868986c107d7b23e9bb258d050375b9da123f42a63489ac46c016505ddbed60e"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/constants/image_pos.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/constants/image_pos.npy",
+      "size": 5308544,
+      "sha256": "a42d608a4f3b7574a2674f6567d3fa41016b7fdf2e86eadffc6462fa2cad8d05"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/constants/maskmem_tpos_enc.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/constants/maskmem_tpos_enc.npy",
+      "size": 7296,
+      "sha256": "5a36405a77dbb63e61f93607dc67ccd2356c86f286389300f1fb1ea8ad216588"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/constants/obj_ptr_tpos_proj_bias.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/constants/obj_ptr_tpos_proj_bias.npy",
+      "size": 1152,
+      "sha256": "972d2ef9f9f1e60ce7c0ba7e8eb984516ef089d6135ea6df13e8c4a84a675688"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/constants/obj_ptr_tpos_proj_weight.npy",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/constants/obj_ptr_tpos_proj_weight.npy",
+      "size": 262272,
+      "sha256": "00b0563f74ff2392dce34c9bb3c96687799df45af42c1cca4d813e4da5c3b6fc"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/interactive_multi/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/interactive_multi/fp16/model.onnx",
+      "size": 247449,
+      "sha256": "42f2876cfb62e3dbb0a3ac74d1acd4e09801ecb7ea7a71d65ecb527185c409dd"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/interactive_multi/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/interactive_multi/fp16/model.onnx.data",
+      "size": 14193664,
+      "sha256": "820e5cecada91472f53dfcad6df45a7066108a94ba76352607a102b2816d8518"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/interactive_single/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/interactive_single/fp16/model.onnx",
+      "size": 258028,
+      "sha256": "92173ac20b41a3ff084d898543ea704a979cd66f2a751b5b59fddd34fca861a8"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/interactive_single/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/interactive_single/fp16/model.onnx.data",
+      "size": 14193664,
+      "sha256": "889ed263c96f5639aaf8e8b3428fa2fa66a7f89a400c3b27d2e7ab7bf112c65e"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/mask_downsample/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/mask_downsample/fp16/model.onnx",
+      "size": 1016,
+      "sha256": "5163275b6bf56ccef98055ba2942d5d2ab44ef7ed02851c89c45af02127e91a8"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_attention_mem10/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_attention_mem10/fp16/model.onnx",
+      "size": 769999,
+      "sha256": "6ed5bbd68d5756daf50f865f2c2921483a63c3e7cf4b7579b68f3e8bae323148"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_attention_mem10/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_attention_mem10/fp16/model.onnx.data",
+      "size": 33685504,
+      "sha256": "900e13189347d1ec8ce2bf29b44b9029976b3bf755c7899ddf897e0e2e003b5d"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_attention_mem7/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_attention_mem7/fp16/model.onnx",
+      "size": 769999,
+      "sha256": "24b6ca778c6bd32adfeb8203deadd38742ab09d79f935fd2cbbea5817b91a902"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_attention_mem7/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_attention_mem7/fp16/model.onnx.data",
+      "size": 29704192,
+      "sha256": "29d3d9d13b7ada0d2e5b2a7b2e929d31ad6e40b531594e426ca1a79e83098190"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_encoder/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_encoder/fp16/model.onnx",
+      "size": 65635,
+      "sha256": "47c57ce14109ed1a6efa69753de06134fc41078913c2fb6bace791254e73a948"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_encoder/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_encoder/fp16/model.onnx.data",
+      "size": 7862272,
+      "sha256": "3dd5be3adfe85ff6c9b5418743ae8763bc0e685c1f4bf76d05722c7f48be836c"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_encoder_logits/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_encoder_logits/fp16/model.onnx",
+      "size": 66114,
+      "sha256": "7be4b90c6ff5bd39d6a7b72cddc498c13dc0212f070fab109ded0efcf6d80099"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/memory_encoder_logits/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/memory_encoder_logits/fp16/model.onnx.data",
+      "size": 7862272,
+      "sha256": "3dd5be3adfe85ff6c9b5418743ae8763bc0e685c1f4bf76d05722c7f48be836c"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/propagation/fp16/model.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/propagation/fp16/model.onnx",
+      "size": 130467,
+      "sha256": "d642c8783df126008bb8671cf403a1c95e8e6eea65189d64306f5123c3ecf0bb"
+    },
+    {
+      "group": "sam",
+      "path": "models/sam3.1/tracker/propagation/fp16/model.onnx.data",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/sam3.1/tracker/propagation/fp16/model.onnx.data",
+      "size": 11306496,
+      "sha256": "24d98c8606a7cc2a5f32ccb499ccb6f5761aceefbfff184cd424635676c53ac0"
+    },
+    {
+      "group": "sam",
+      "path": "models/translate/opus-mt-romance-en/config.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/translate/opus-mt-romance-en/config.json",
+      "size": 165,
+      "sha256": "a2e5fba8dae6b6057ae10f646d645e7292f5665e08c9d8918b71ba147d93c232"
+    },
+    {
+      "group": "sam",
+      "path": "models/translate/opus-mt-romance-en/decoder.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/translate/opus-mt-romance-en/decoder.onnx",
+      "size": 92812323,
+      "sha256": "f48a0e822a4466b9e4593f3faeb410d8a998c209fe6ddaac093ac174d4a6de2f"
+    },
+    {
+      "group": "sam",
+      "path": "models/translate/opus-mt-romance-en/encoder.onnx",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/translate/opus-mt-romance-en/encoder.onnx",
+      "size": 52742133,
+      "sha256": "c71492f97ea5dc037909f280d38ab9023b5e1a82206f4ca7227c7f593be23abc"
+    },
+    {
+      "group": "sam",
+      "path": "models/translate/opus-mt-romance-en/source.spm",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/translate/opus-mt-romance-en/source.spm",
+      "size": 800087,
+      "sha256": "baeab21ec00d0b490382b82499ef0348235c5a8e75de28aec8290adf62b007c4"
+    },
+    {
+      "group": "sam",
+      "path": "models/translate/opus-mt-romance-en/vocab.json",
+      "url": "https://huggingface.co/brurpo/CorridorKey-BRP-ONNX/resolve/e50f074e0e959d15a972a71b4ad5092dc7a6fe52/models/translate/opus-mt-romance-en/vocab.json",
+      "size": 1460304,
+      "sha256": "1ffaf15a0b51f0774c1dc24a1a675859dc18fc7705ebe6a0ac45a9c560457c29"
+    }
+  ]
+}

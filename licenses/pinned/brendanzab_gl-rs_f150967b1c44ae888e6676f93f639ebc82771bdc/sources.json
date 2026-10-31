@@ -1,0 +1,12 @@
+{
+  "repository": "brendanzab/gl-rs",
+  "commit": "f150967b1c44ae888e6676f93f639ebc82771bdc",
+  "files": [
+    {
+      "file": "licenses/pinned/brendanzab_gl-rs_f150967b1c44ae888e6676f93f639ebc82771bdc/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "origin": "https://raw.githubusercontent.com/brendanzab/gl-rs/f150967b1c44ae888e6676f93f639ebc82771bdc/LICENSE",
+      "source_path": "LICENSE"
+    }
+  ]
+}

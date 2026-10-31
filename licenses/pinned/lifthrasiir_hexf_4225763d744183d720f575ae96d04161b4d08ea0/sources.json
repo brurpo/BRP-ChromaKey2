@@ -1,0 +1,18 @@
+{
+  "repository": "lifthrasiir/hexf",
+  "commit": "4225763d744183d720f575ae96d04161b4d08ea0",
+  "files": [
+    {
+      "file": "licenses/pinned/lifthrasiir_hexf_4225763d744183d720f575ae96d04161b4d08ea0/parse__Cargo.toml",
+      "sha256": "4a56dbdbc12054fd33b7a2634a45cbbe6fe12f5e6f4081002cbfa527f7220c70",
+      "origin": "https://raw.githubusercontent.com/lifthrasiir/hexf/4225763d744183d720f575ae96d04161b4d08ea0/parse/Cargo.toml",
+      "source_path": "parse/Cargo.toml"
+    },
+    {
+      "file": "licenses/pinned/lifthrasiir_hexf_4225763d744183d720f575ae96d04161b4d08ea0/CC0-1.0-legalcode.txt",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "origin": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+      "source_path": "CC0-1.0-legalcode.txt"
+    }
+  ]
+}

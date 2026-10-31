@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "kind": "model_attribution_and_original_license_notices",
+  "components": [
+    {
+      "name": "CorridorKey2.0 stages and feature-normalization statistics",
+      "publisher": "Corridor Digital LLC",
+      "code_repository": "https://github.com/nikopueringer/CorridorKey2.0",
+      "code_revision": "485f5e9ab759ead6138cc990776184b59d6ea971",
+      "weights_repository": "https://huggingface.co/nikopueringer/CorridorKey2.0",
+      "weights_revision": "cf44a8db3f024bb49fd59daa408848ccf05f7477",
+      "original_weights_sha256": "c43596de98cc8866d577c8a9f9ea239acdf3f7a130ff24e25db4375a50590436",
+      "foundation_stats_sha256": "924783ceddd293fd470126332ce328166faea6c4c8d2f36402d5b95187166af3",
+      "license": "Corridor Key Licence2.0: CC-BY-NC-SA4.0 with original additional terms",
+      "license_files": [
+        "CORRIDORKEY_LICENSE.txt",
+        "CORRIDORKEY_THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    {
+      "name": "C-RADIOv4-SO400M",
+      "publisher": "NVIDIA Corporation",
+      "weights_repository": "https://huggingface.co/nvidia/C-RADIOv4-SO400M",
+      "weights_revision": "c0457f5dc26ca145f954cd4fc5bb6114e5705ad8",
+      "original_weights_sha256": "23e0c117de49d4ce909150fe6658d470829e6639647c7a5b035ce82e0d5b763c",
+      "license": "NVIDIA Open Model License Agreement June2024",
+      "license_files": [
+        "NVIDIA_OPEN_MODEL_LICENSE.txt",
+        "NVIDIA_LICENSE_PROVENANCE.json"
+      ],
+      "required_attribution": "Licensed by NVIDIA Corporation under the NVIDIA Open Model License."
+    },
+    {
+      "name": "MoGe-2 ViT-B normal, DINOv2 encoder",
+      "publisher": "Microsoft Corporation; DINOv2 portions Meta Platforms, Inc.",
+      "code_repository": "https://github.com/microsoft/MoGe",
+      "vendored_code_source": "https://github.com/nikopueringer/CorridorKey2.0/tree/485f5e9ab759ead6138cc990776184b59d6ea971/third_party/MoGe",
+      "weights_repository": "https://huggingface.co/Ruicheng/moge-2-vitb-normal",
+      "weights_revision": "ca5f0e07ff01d3e5a364c1d954ed12ee1814b368",
+      "original_weights_sha256": "16b8110e86d5dc5a849db120ca96ef3a223fd30b0c9146d1d81db504073da5f6",
+      "license": "MIT for MoGe code/weights; Apache2.0 for included DINOv2 code",
+      "license_files": [
+        "MOGE_MIT_AND_DINOV2_APACHE_LICENSE.txt"
+      ]
+    },
+    {
+      "name": "RVM small16 (Recurrent Video MAE), frozen encoder/recurrent core",
+      "publisher": "Google DeepMind / Google LLC",
+      "code_repository": "https://github.com/google-deepmind/representations4d",
+      "notice_retrieval_revision": "d5bf6bad6a781bbfb5edb1ac98b53feb2a8dcf5d",
+      "actual_port_repository": "https://github.com/nikopueringer/CorridorKey2.0",
+      "actual_port_revision": "485f5e9ab759ead6138cc990776184b59d6ea971",
+      "weights_url": "https://storage.googleapis.com/representations4d/checkpoints/pretrain_rvm_small16_256_204031069.npz",
+      "original_weights_sha256": "8821ba9f5d983b9a3746bb5fe86b9c2ea834fe9985ab7b02438b917438bf2ede",
+      "original_weights_md5_base64": "ZJb6kj8+tasiJbVeplXu7Q==",
+      "upstream_code_revision_at_original_weight_export": "not recorded; actual CK port revision and checkpoint hash recorded",
+      "license": "Apache2.0 code; CC-BY4.0 weights/other materials",
+      "license_files": [
+        "RVM_CODE_APACHE_2_LICENSE.txt",
+        "RVM_WEIGHTS_CC_BY_4_LEGALCODE.txt",
+        "RVM_UPSTREAM_LICENSE_DECLARATION.txt"
+      ]
+    },
+    {
+      "name": "SAM2.1 Hiera SMALL video propagation",
+      "publisher": "Meta Platforms, Inc. and affiliates",
+      "code_repository": "https://github.com/facebookresearch/sam2",
+      "code_revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+      "checkpoint_url": "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_small.pt",
+      "config": "configs/sam2.1/sam2.1_hiera_s.yaml",
+      "original_weights_sha256": "6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38",
+      "license": "Apache2.0; additional upstream auxiliary notice retained",
+      "license_files": [
+        "SAM2_APACHE_2_LICENSE.txt",
+        "SAM2_CCTORCH_BSD3_LICENSE.txt"
+      ]
+    },
+    {
+      "name": "TransNetV2",
+      "publisher": "Tomáš Souček and TransNetV2 contributors",
+      "code_repository": "https://github.com/soCzech/TransNetV2",
+      "notice_retrieval_revision": "85cef72af9a916bdfd7cc94a670c9cdfbf12d1ed",
+      "export_reference_package": "transnetv2-pytorch1.0.5",
+      "export_package_repository": "https://github.com/allenday/transnetv2_pytorch",
+      "export_package_source_sha256": "8d0e76b7b87a6c427e8d5aad920c9b25c8a383f5e9f9f7c33c77feeb52557a89",
+      "original_weights_sha256": "a313d0b3bebfa9a71914b375bfdf918a30b5c3b1e6be51972d35dd8078b442de",
+      "upstream_revision_at_original_weight_export": "not recorded; actual package version/source hash/weight hash recorded",
+      "license": "MIT",
+      "license_files": [
+        "TRANSNETV2_MIT_LICENSE.txt",
+        "TRANSNETV2_PYTORCH_1.0.5_MIT_LICENSE.txt"
+      ]
+    },
+    {
+      "name": "SAM 3.1",
+      "publisher": "Meta Platforms, Inc.",
+      "code_repository": "https://github.com/facebookresearch/sam3",
+      "weights_repository": "https://huggingface.co/facebook/sam3.1",
+      "license": "SAM License (November 19, 2025)",
+      "license_files": [
+        "SAM3_LICENSE.txt"
+      ],
+      "license_file_sha256": {
+        "SAM3_LICENSE.txt": "67f67e15efa517e0f67f59ff2d2f603a624da5d2f5458b0c5b366ccd66bb3eea"
+      },
+      "modifications": "ONNX export: merged frame graph (vision + tracker features), detector, text encoder, tracker graphs; FP16 except text encoder FP32."
+    },
+    {
+      "name": "Opus-MT ROMANCE-en",
+      "publisher": "Helsinki-NLP, University of Helsinki",
+      "weights_repository": "https://huggingface.co/Helsinki-NLP/opus-mt-ROMANCE-en",
+      "license": "Apache-2.0 (model card)",
+      "license_files": [
+        "OPUS_MT_ROMANCE_EN_APACHE_2_LICENSE.txt"
+      ],
+      "license_file_sha256": {
+        "OPUS_MT_ROMANCE_EN_APACHE_2_LICENSE.txt": "2c152573668d76cd7fb55a604a343bf7ccb867b24687bb8381e5db20a7aa4c0a"
+      },
+      "modifications": "ONNX encoder/decoder export with INT8 weight quantization."
+    }
+  ],
+  "notice_sources": [
+    {
+      "file": "CORRIDORKEY_LICENSE.txt",
+      "bytes": 27247,
+      "sha256": "68829e98a5947567b60d1a3bc190cde51b87bfe64cf718d1dcaaa76fbe55da61",
+      "source_url": "https://github.com/nikopueringer/CorridorKey2.0/blob/485f5e9ab759ead6138cc990776184b59d6ea971/LICENSE",
+      "revision": "485f5e9ab759ead6138cc990776184b59d6ea971",
+      "role": "Original complete Corridor Key Licence2.0 with CC-BY-NC-SA4.0 and all additional terms; covers original CK code/model weights."
+    },
+    {
+      "file": "CORRIDORKEY_THIRD_PARTY_NOTICES.md",
+      "bytes": 1745,
+      "sha256": "4b2480dc64f93c34099e56dc0a50942d2818461d56ceb483e9ececa56fe4627b",
+      "source_url": "https://github.com/nikopueringer/CorridorKey2.0/blob/485f5e9ab759ead6138cc990776184b59d6ea971/THIRD_PARTY_NOTICES.md",
+      "revision": "485f5e9ab759ead6138cc990776184b59d6ea971",
+      "role": "Original CorridorKey attribution and component-specific license declaration, unchanged."
+    },
+    {
+      "file": "MOGE_MIT_AND_DINOV2_APACHE_LICENSE.txt",
+      "bytes": 12724,
+      "sha256": "be23f97f4a4a7f0d5592a958a5f0a1ea2cda34aee75ffaff98284978bea32d7e",
+      "source_url": "https://github.com/nikopueringer/CorridorKey2.0/blob/485f5e9ab759ead6138cc990776184b59d6ea971/third_party/MoGe/LICENSE",
+      "revision": "485f5e9ab759ead6138cc990776184b59d6ea971",
+      "role": "Exact vendored MoGe MIT and included DINOv2 Apache2.0 license texts; model weights separately pinned to Ruicheng/moge-2-vitb-normal."
+    },
+    {
+      "file": "SAM2_APACHE_2_LICENSE.txt",
+      "bytes": 11558,
+      "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6",
+      "source_url": "https://github.com/facebookresearch/sam2/blob/2b90b9f5ceec907a1c18123530e92e794ad901a4/LICENSE",
+      "revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+      "role": "Official SAM2.1 code and checkpoint Apache2.0 license."
+    },
+    {
+      "file": "SAM2_CCTORCH_BSD3_LICENSE.txt",
+      "bytes": 1595,
+      "sha256": "b4d90f9c25b30d3fbd412f50dd4204f17e16af2813f4f3fe25b2f0d0f97e35fd",
+      "source_url": "https://github.com/facebookresearch/sam2/blob/2b90b9f5ceec907a1c18123530e92e794ad901a4/LICENSE_cctorch",
+      "revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+      "role": "Additional upstream SAM2 reference auxiliary-component notice, retained for completeness; no source files distributed here."
+    },
+    {
+      "file": "TRANSNETV2_PYTORCH_1.0.5_MIT_LICENSE.txt",
+      "bytes": 1072,
+      "sha256": "a8d7a056688ccedebe89f18fd60f1a47128df94cb82669cd02459934919cbb6f",
+      "source_url": "https://pypi.org/project/transnetv2-pytorch/1.0.5/",
+      "revision": "1.0.5",
+      "role": "Exact license distributed with the exported-reference Python package; the package is not part of the native app or model download."
+    },
+    {
+      "file": "TRANSNETV2_MIT_LICENSE.txt",
+      "bytes": 1072,
+      "sha256": "a8d7a056688ccedebe89f18fd60f1a47128df94cb82669cd02459934919cbb6f",
+      "source_url": "https://raw.githubusercontent.com/soCzech/TransNetV2/85cef72af9a916bdfd7cc94a670c9cdfbf12d1ed/LICENSE",
+      "revision": "85cef72af9a916bdfd7cc94a670c9cdfbf12d1ed",
+      "role": "Official original TransNetV2 project MIT license; this revision identifies the retrieved notice, while exported package source/weight hashes identify the actual export input."
+    },
+    {
+      "file": "RVM_CODE_APACHE_2_LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "source_url": "https://raw.githubusercontent.com/google-deepmind/representations4d/d5bf6bad6a781bbfb5edb1ac98b53feb2a8dcf5d/LICENSE",
+      "revision": "d5bf6bad6a781bbfb5edb1ac98b53feb2a8dcf5d",
+      "role": "Official RVM/representations4d software Apache2.0 license. Revision identifies notice retrieval; the actual CK port is pinned to the CK revision."
+    },
+    {
+      "file": "RVM_WEIGHTS_CC_BY_4_LEGALCODE.txt",
+      "bytes": 18657,
+      "sha256": "9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411",
+      "source_url": "https://creativecommons.org/licenses/by/4.0/legalcode.txt",
+      "revision": "CC-BY-4.0",
+      "role": "Full official Creative Commons Attribution4.0 legal code referenced by RVM upstream for non-software materials/checkpoints."
+    },
+    {
+      "file": "RVM_UPSTREAM_LICENSE_DECLARATION.txt",
+      "bytes": 909,
+      "sha256": "585811d9a94267f710b1252a909a12768a03cebd74114dd5fe233b75dbfeb75f",
+      "source_url": "https://raw.githubusercontent.com/google-deepmind/representations4d/d5bf6bad6a781bbfb5edb1ac98b53feb2a8dcf5d/README.md",
+      "revision": "d5bf6bad6a781bbfb5edb1ac98b53feb2a8dcf5d",
+      "role": "Unchanged license/disclaimer section establishing software Apache2.0 and other materials CC-BY4.0."
+    },
+    {
+      "file": "NVIDIA_OPEN_MODEL_LICENSE.txt",
+      "bytes": 8701,
+      "sha256": "10cdcf062077037d70b9e0f5547943576ce5ffad985d609c2c2473235fded8d9",
+      "source_url": "https://developer.download.nvidia.com/licenses/nvidia-open-model-license-agreement-june-2024.pdf",
+      "revision": "June14,2024",
+      "role": "Official NVIDIA Open Model License; text extracted from the original PDF with original punctuation; full extraction provenance supplied separately."
+    }
+  ],
+  "legal_review_complete": false,
+  "contains_model_weights": false,
+  "contains_runtime_libraries": false,
+  "contains_application_source": false
+}

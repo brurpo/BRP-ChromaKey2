@@ -1,0 +1,20 @@
+[package]
+name = "ck-core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+libm = "0.2"
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1"
+
+[features]
+contract-probe = []
+
+[[bin]]
+name = "ck-contract-probe"
+path = "src/bin/contract_probe.rs"
+required-features = ["contract-probe"]

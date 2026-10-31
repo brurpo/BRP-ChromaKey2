@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "third_party_model_license_provenance",
+  "model": "nvidia/C-RADIOv4-SO400M",
+  "hugging_face_source": "https://huggingface.co/nvidia/C-RADIOv4-SO400M",
+  "hugging_face_revision": "c0457f5dc26ca145f954cd4fc5bb6114e5705ad8",
+  "hugging_face_pinned_readme_url": "https://huggingface.co/nvidia/C-RADIOv4-SO400M/raw/c0457f5dc26ca145f954cd4fc5bb6114e5705ad8/README.md",
+  "hugging_face_readme_sha256": "af7881b8207e7060b8df5b8df4df4e87e628faffc188b494836bbec086233b33",
+  "license_name": "NVIDIA Open Model License Agreement",
+  "license_version_release_date": "2024-06-14",
+  "original_official_url": "https://developer.download.nvidia.com/licenses/nvidia-open-model-license-agreement-june-2024.pdf",
+  "pdf_sha256": "396d7de220f6b0e6fcfe33836f1b99a9943769b97c56330444f8efe1b441f607",
+  "pdf_bytes": 151612,
+  "pdf_page_count": 2,
+  "text_file": "NVIDIA_OPEN_MODEL_LICENSE.txt",
+  "text_sha256": "10cdcf062077037d70b9e0f5547943576ce5ffad985d609c2c2473235fded8d9",
+  "text_bytes": 8701,
+  "extraction_method": {
+    "tool": "pdfplumber",
+    "version": "0.11.9",
+    "call": "page.extract_text(x_tolerance=1)",
+    "page_join": "two LF characters",
+    "encoding": "UTF-8 without BOM",
+    "final_newline": "LF",
+    "changes": "No wording, punctuation, or Unicode substitutions; extracted lines retained; only page separator and final newline added."
+  },
+  "retrieved_at_utc": "2026-10-24T20:10:04.192137+00:00",
+  "source_confirmation": "The pinned NVIDIA Hugging Face model card declares license_name=nvidia-open-model-license and links the official June 2024 PDF as governing terms.",
+  "legal_review_status": "open"
+}

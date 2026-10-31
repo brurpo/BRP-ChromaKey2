@@ -1,0 +1,18 @@
+{
+  "repository": "emilk/egui",
+  "commit": "44cdd653e2317d300fb8a6c9c36b03f23991e803",
+  "files": [
+    {
+      "file": "licenses/pinned/emilk_egui_44cdd653e2317d300fb8a6c9c36b03f23991e803/LICENSE-APACHE",
+      "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90",
+      "origin": "https://raw.githubusercontent.com/emilk/egui/44cdd653e2317d300fb8a6c9c36b03f23991e803/LICENSE-APACHE",
+      "source_path": "LICENSE-APACHE"
+    },
+    {
+      "file": "licenses/pinned/emilk_egui_44cdd653e2317d300fb8a6c9c36b03f23991e803/LICENSE-MIT",
+      "sha256": "95ca92f5f8ea5231f1580b3a2a799e8260af3114b900e1def5355a7f44bcf60c",
+      "origin": "https://raw.githubusercontent.com/emilk/egui/44cdd653e2317d300fb8a6c9c36b03f23991e803/LICENSE-MIT",
+      "source_path": "LICENSE-MIT"
+    }
+  ]
+}

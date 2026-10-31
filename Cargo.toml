@@ -1,0 +1,13 @@
+[workspace]
+members = ["crates/ck-core", "crates/ck-native", "crates/ck-desktop-core", "crates/ck-desktop"]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+

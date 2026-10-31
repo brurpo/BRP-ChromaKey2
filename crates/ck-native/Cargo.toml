@@ -1,0 +1,25 @@
+[package]
+name = "ck-native"
+version.workspace = true
+edition.workspace = true
+description = "Python-free native CorridorKey ONNX inference proof of concept"
+
+[dependencies]
+anyhow = "1"
+ck-core = { path = "../ck-core" }
+ck-desktop-core = { path = "../ck-desktop-core" }
+half = { version = "2", default-features = false, features = ["std"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+libloading = "0.8"
+ndarray = "0.16"
+prost = "0.14"
+lingua = { version = "1.8", default-features = false, features = ["english", "portuguese"] }
+unicode-normalization = "0.1"
+ort = { version = "=2.0.0-rc.10", default-features = false, features = ["std", "ndarray", "half", "load-dynamic", "cuda"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common", "Win32_System_SystemInformation", "Win32_Storage_FileSystem"] }
+

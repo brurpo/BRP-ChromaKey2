@@ -1,0 +1,6 @@
+* text=auto
+*.sh text eol=lf
+*.png binary
+*.onnx binary
+*.bin binary
+*.ptx text eol=lf

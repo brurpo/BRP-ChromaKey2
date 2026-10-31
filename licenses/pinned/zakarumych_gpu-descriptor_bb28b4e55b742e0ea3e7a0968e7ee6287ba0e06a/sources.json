@@ -1,0 +1,12 @@
+{
+  "repository": "zakarumych/gpu-descriptor",
+  "commit": "bb28b4e55b742e0ea3e7a0968e7ee6287ba0e06a",
+  "files": [
+    {
+      "file": "licenses/pinned/zakarumych_gpu-descriptor_bb28b4e55b742e0ea3e7a0968e7ee6287ba0e06a/COPYING",
+      "sha256": "f72143f7e9d9fb8bd336b139fa22f825a299591c29f2f7338c5566347b137613",
+      "origin": "https://raw.githubusercontent.com/zakarumych/gpu-descriptor/bb28b4e55b742e0ea3e7a0968e7ee6287ba0e06a/COPYING",
+      "source_path": "COPYING"
+    }
+  ]
+}

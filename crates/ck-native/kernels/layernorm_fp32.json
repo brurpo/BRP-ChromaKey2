@@ -1,0 +1,22 @@
+{
+  "kind": "dev_only_layernorm_ptx_compilation",
+  "gpu_used": false,
+  "nvrtc_version": [
+    12,
+    8
+  ],
+  "options": [
+    "--gpu-architecture=compute_70",
+    "--std=c++14",
+    "--fmad=true",
+    "--ftz=false",
+    "--prec-div=true",
+    "--prec-sqrt=true"
+  ],
+  "source_sha256": "8d9843bd07acb6eccf59c76b918a875acdfab10d953ab9695853c4c4fa396a81",
+  "ptx_sha256": "08b006ef1d3f065bee55c0953e4f7af188b3f7dd5d6a606c5edfabe9bb58e43a",
+  "ptx_bytes": 19354,
+  "source_reference": "PyTorch v2.9.1 layer_norm_kernel.cu aligned FP32 Welford LayerNorm forward",
+  "qualified": false,
+  "shipping_dependencies": "Embedded PTX + native CUDA driver only; no NVRTC/Python/Torch"
+}

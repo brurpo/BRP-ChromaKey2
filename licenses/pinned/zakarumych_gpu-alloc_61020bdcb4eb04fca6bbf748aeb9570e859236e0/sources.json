@@ -1,0 +1,12 @@
+{
+  "repository": "zakarumych/gpu-alloc",
+  "commit": "61020bdcb4eb04fca6bbf748aeb9570e859236e0",
+  "files": [
+    {
+      "file": "licenses/pinned/zakarumych_gpu-alloc_61020bdcb4eb04fca6bbf748aeb9570e859236e0/COPYING",
+      "sha256": "12121dfa588677007848ab922a45a1e3248868f6ff063598fceb3141d7897314",
+      "origin": "https://raw.githubusercontent.com/zakarumych/gpu-alloc/61020bdcb4eb04fca6bbf748aeb9570e859236e0/COPYING",
+      "source_path": "COPYING"
+    }
+  ]
+}

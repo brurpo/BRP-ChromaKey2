@@ -1,0 +1,28 @@
+CorridorKey BRP ONNX — Model Attribution and Original Notices
+
+These converted ONNX packs contain components from several original publishers. Their license terms remain separate. No single permissive license is applied to the combined collection, and no publisher endorsement is claimed.
+
+CorridorKey2.0 — Copyright Corridor Digital LLC. Original Corridor Key Licence2.0, including its full CC-BY-NC-SA4.0 text and all additional terms, is preserved in CORRIDORKEY_LICENSE.txt. The original THIRD_PARTY_NOTICES document is preserved separately. In particular, the original additional terms are not replaced by a simplified commercial-use label.
+
+C-RADIOv4-SO400M — NVIDIA Corporation.
+Licensed by NVIDIA Corporation under the NVIDIA Open Model License.
+
+MoGe-2 ViT-B — Microsoft Corporation, MIT. Included DINOv2 portions — Meta Platforms, Inc., Apache2.0. Both original texts are reproduced together.
+
+RVM small16 — Google DeepMind / Google LLC. Software: Apache2.0. Weights and other materials: Creative Commons Attribution4.0. The original Google license/disclaimer declaration is included. This is not an official Google product.
+
+SAM2.1 Hiera SMALL — Meta Platforms, Inc. and affiliates, Apache2.0. This collection uses the small checkpoint, not the tiny checkpoint. Additional upstream auxiliary-component notice is retained.
+
+SAM 3.1 — Meta Platforms, Inc. Distributed under the SAM License (model-notices/SAM3_LICENSE.txt), which must accompany any redistribution of these graphs or derivatives of them. Converted to ONNX (merged frame encoder, detector, tracker graphs) in FP16, with the text encoder in FP32; the bundled BPE merge list comes from the SAM 3 package.
+
+Opus-MT ROMANCE-en — Helsinki-NLP / University of Helsinki, Apache 2.0 per its model card (model-notices/OPUS_MT_ROMANCE_EN_APACHE_2_LICENSE.txt). Converted to ONNX encoder/decoder with INT8 weights; used to translate Portuguese text prompts for SAM 3.1.
+
+CorridorKey native static-plan graphs (models/corridorkey/native) are re-exports of the same CorridorKey 2.0 Stage1/Stage2 weights in FP16 with symbolic geometry, and carry the Corridor Key Licence 2.0 like the rest of the CorridorKey pack.
+
+TransNetV2 — Tomáš Souček and contributors, MIT. The actual export reference was transnetv2-pytorch1.0.5; its original license is included alongside the official original project's license.
+
+Modifications: model graphs were converted to ONNX for native inference; graph layouts and dynamic spatial shape handling were adapted for the native runtime. CorridorKey feature-normalization statistics are incorporated into its foundation forwards. The public packs are conversions, not original publisher releases. Their numerical behavior and validation scope are documented with the application; this notice does not expand that scope.
+
+MODEL_LICENSES.json records publisher URLs, pinned revisions when captured, original checkpoint hashes, exact notice-file hashes, and explicit gaps where the original export did not record an upstream revision. Notice-retrieval revisions are distinguished from export-input revisions.
+
+This collection preserves attribution and original license texts. It does not claim that a complete legal or redistribution review has been completed or grant rights beyond the original publishers' terms.
