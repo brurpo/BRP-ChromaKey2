@@ -36,4 +36,4 @@ $upload = ($release.upload_url -replace '\{.*\}$', '') + "?name=$([uri]::EscapeD
 Write-Host ("Uploading {0} ({1:N1} MB)" -f $name, ((Get-Item -LiteralPath $Zip).Length / 1MB))
 Invoke-RestMethod -Method Post -Headers $headers -Uri $upload -InFile $Zip -ContentType 'application/zip' | Out-Null
 Invoke-RestMethod -Method Patch -Headers $headers -Uri "https://api.github.com/repos/$Repository/releases/$($release.id)" -Body (@{ draft = $false } | ConvertTo-Json) -ContentType 'application/json' | Out-Null
-Write-Host "Published v$Version: $($release.html_url)"
+Write-Host "Published v${Version}: $($release.html_url)"
