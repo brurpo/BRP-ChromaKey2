@@ -1,23 +1,23 @@
 //! In-app updates from GitHub releases.
 //!
-//! Every release of `UPDATE_REPOSITORY` carries `UPDATE_MANIFEST_ASSET`: the complete list of app
-//! files (relative path, size, sha256, download URL). Files that did not change keep pointing at
-//! the older release asset that already holds them, so a release uploads only what changed and
-//! the app downloads only files whose local copy differs.
+//! Each release of `UPDATE_REPOSITORY` has one asset: the install zip (`*-windows-x64.zip`,
+//! about 35 MB; models are downloaded separately). When the latest release's version is newer than
+//! `release.json`, the app downloads the whole zip, checks it against the SHA-256 digest GitHub
+//! publishes for the asset, unpacks it into `.update-staging/<version>` and swaps every file in.
+//! Any installed version therefore updates straight to the newest release.
 //!
-//! Flow: [`check_latest`] (GitHub API, anonymous) -> [`plan`] (hash local files) -> [`download`]
-//! (staged under `.update-staging/<version>`, sha256 verified) -> [`apply`] (each file is swapped
-//! in by renaming the current one to `*.brp-old`, with rollback on failure; Windows allows renaming
-//! running executables and loaded DLLs) -> restart. [`cleanup_previous`] removes `*.brp-old` files
-//! at the next start. `release.json` records the installed version.
+//! Flow: [`check_latest`] (GitHub API, anonymous) -> [`download`] (zip + unpack) -> [`apply`] (each
+//! file is swapped in by renaming the current one to `*.brp-old`, with rollback on failure; Windows
+//! allows renaming running executables and loaded DLLs) -> restart. [`cleanup_previous`] removes
+//! `*.brp-old` files at the next start.
 
 use anyhow::{Context, Result, bail, ensure};
-use reqwest::{blocking::Client, header};
+use reqwest::{StatusCode, blocking::Client, header};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
-use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::fs;
+use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering as AtomicOrdering};
@@ -25,50 +25,29 @@ use std::time::Duration;
 
 /// Public repository whose releases the app updates from.
 pub const UPDATE_REPOSITORY: &str = "brurpo/BRP-ChromaKey2";
-/// Release asset holding the [`UpdateManifest`].
-pub const UPDATE_MANIFEST_ASSET: &str = "brp-chroma-update.json";
-/// Installed release, written by the packager and by [`apply`].
+/// The release asset the updater downloads: the install zip.
+pub const RELEASE_ZIP_SUFFIX: &str = "-windows-x64.zip";
+/// Installed release, shipped in the zip and rewritten by [`apply`].
 pub const RELEASE_FILE: &str = "release.json";
 const STAGING: &str = ".update-staging";
 const OLD_SUFFIX: &str = "brp-old";
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct UpdateFile {
-    /// Relative path inside the app folder, `/`-separated.
-    pub path: String,
-    pub size: u64,
-    pub sha256: String,
-    pub url: String,
-}
-
-/// Every app version that has this updater reads this manifest from the latest release, so any
-/// installed version updates straight to the newest one (files are compared by sha256, not by
-/// version history). Schema 1 is frozen: later releases may only add optional fields (unknown
-/// fields are ignored here); a breaking change needs a new asset name next to this one.
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct UpdateManifest {
-    pub schema_version: u32,
-    pub version: String,
-    #[serde(default)]
-    pub notes: String,
-    pub files: Vec<UpdateFile>,
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InstalledRelease {
     pub version: String,
 }
 
-/// A newer release and what it would change here.
+/// A newer release.
 #[derive(Clone, Debug)]
 pub struct UpdatePlan {
     pub version: String,
     pub notes: String,
     pub page: String,
-    /// Files whose local copy is missing or different.
-    pub files: Vec<UpdateFile>,
+    /// Size of the zip to download.
     pub bytes: u64,
-    pub total_files: usize,
+    zip_url: String,
+    /// SHA-256 of the zip as published by GitHub, when available.
+    sha256: Option<String>,
 }
 
 #[derive(Clone, Default)]
@@ -116,10 +95,11 @@ pub fn compare_versions(a: &str, b: &str) -> Ordering {
 }
 
 fn client() -> Result<Client> {
+    // The timeout applies to each read, not the whole download.
     Ok(Client::builder()
         .user_agent(concat!("BRP-Chroma-updater/", env!("CARGO_PKG_VERSION")))
         .connect_timeout(Duration::from_secs(10))
-        .timeout(None)
+        .timeout(Duration::from_secs(60))
         .build()?)
 }
 
@@ -142,19 +122,22 @@ struct GithubRelease {
 struct GithubAsset {
     name: String,
     browser_download_url: String,
+    size: u64,
+    /// `sha256:<hex>`, published by GitHub for release assets.
+    #[serde(default)]
+    digest: Option<String>,
 }
 
-/// The latest release's manifest when it is newer than `current`.
-pub fn check_latest(repository: &str, current: &str) -> Result<Option<(UpdateManifest, String)>> {
-    let client = client()?;
-    let response = client
+/// The latest release when its version is newer than `current`.
+pub fn check_latest(repository: &str, current: &str) -> Result<Option<UpdatePlan>> {
+    let response = client()?
         .get(format!(
             "https://api.github.com/repos/{repository}/releases/latest"
         ))
         .header(header::ACCEPT, "application/vnd.github+json")
         .send()
         .context("contacting GitHub")?;
-    if response.status() == reqwest::StatusCode::NOT_FOUND {
+    if response.status() == StatusCode::NOT_FOUND {
         // No release yet (or the repository is not public).
         return Ok(None);
     }
@@ -165,62 +148,45 @@ pub fn check_latest(repository: &str, current: &str) -> Result<Option<(UpdateMan
             .bytes()?,
     )
     .context("reading the latest release")?;
-    if release.draft || release.prerelease {
+    if release.draft
+        || release.prerelease
+        || compare_versions(&release.tag_name, current) != Ordering::Greater
+    {
         return Ok(None);
     }
     let Some(asset) = release
         .assets
         .iter()
-        .find(|asset| asset.name == UPDATE_MANIFEST_ASSET)
+        .find(|asset| asset.name.ends_with(RELEASE_ZIP_SUFFIX))
     else {
         return Ok(None);
     };
-    let mut manifest: UpdateManifest = serde_json::from_slice(
-        &client
-            .get(&asset.browser_download_url)
-            .send()?
-            .error_for_status()
-            .context("downloading the update manifest")?
-            .bytes()?,
-    )
-    .context("reading the update manifest")?;
     ensure!(
-        manifest.schema_version == 1,
-        "unsupported update manifest {}",
-        manifest.schema_version
+        asset.browser_download_url.starts_with("https://"),
+        "the release download has no HTTPS URL"
     );
-    if manifest.version.trim().is_empty() {
-        manifest.version = release.tag_name.clone();
-    }
-    if manifest.notes.is_empty() {
-        manifest.notes = release.body.unwrap_or_default();
-    }
-    for file in &manifest.files {
-        relative_path(&file.path)?;
-        ensure!(
-            file.url.starts_with("https://"),
-            "update file {} has no HTTPS URL",
-            file.path
-        );
-    }
-    if compare_versions(&manifest.version, current) != Ordering::Greater {
-        return Ok(None);
-    }
-    Ok(Some((manifest, release.html_url)))
+    Ok(Some(UpdatePlan {
+        version: release.tag_name.trim_start_matches(['v', 'V']).to_owned(),
+        notes: release.body.unwrap_or_default(),
+        page: release.html_url,
+        bytes: asset.size,
+        zip_url: asset.browser_download_url.clone(),
+        sha256: asset
+            .digest
+            .as_deref()
+            .and_then(|digest| digest.strip_prefix("sha256:"))
+            .map(str::to_owned),
+    }))
 }
 
-/// Validates a manifest path: relative, `/`-separated, no `..`, no reserved staging folder.
+/// Validates a path from the zip: relative, no `..`, not inside the staging folder.
 fn relative_path(path: &str) -> Result<PathBuf> {
-    let candidate = Path::new(path);
-    ensure!(
-        !path.is_empty() && !path.contains('\\'),
-        "invalid update path {path}"
-    );
+    ensure!(!path.is_empty(), "empty path in the update");
     let mut out = PathBuf::new();
-    for part in candidate.components() {
+    for part in Path::new(path).components() {
         match part {
             Component::Normal(name) => out.push(name),
-            _ => bail!("unsafe update path {path}"),
+            _ => bail!("unsafe path in the update: {path}"),
         }
     }
     ensure!(
@@ -230,58 +196,83 @@ fn relative_path(path: &str) -> Result<PathBuf> {
     Ok(out)
 }
 
-fn sha256_file(path: &Path, cancel: &UpdateCancel) -> Result<String> {
-    let mut input = File::open(path)?;
-    let mut hash = Sha256::new();
-    let mut buffer = vec![0_u8; 1 << 20];
-    loop {
-        cancel.check()?;
-        let count = input.read(&mut buffer)?;
-        if count == 0 {
-            break;
-        }
-        hash.update(&buffer[..count]);
-    }
-    Ok(hash
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect())
+fn u16_at(data: &[u8], at: usize) -> Result<u16> {
+    let bytes = data.get(at..at + 2).context("truncated zip")?;
+    Ok(u16::from_le_bytes([bytes[0], bytes[1]]))
 }
 
-/// True when the local copy of `file` already matches the manifest.
-fn up_to_date(app_dir: &Path, file: &UpdateFile, cancel: &UpdateCancel) -> Result<bool> {
-    let path = app_dir.join(relative_path(&file.path)?);
-    let Ok(metadata) = fs::metadata(&path) else {
-        return Ok(false);
-    };
-    if !metadata.is_file() || metadata.len() != file.size {
-        return Ok(false);
-    }
-    Ok(sha256_file(&path, cancel)?.eq_ignore_ascii_case(&file.sha256))
+fn u32_at(data: &[u8], at: usize) -> Result<usize> {
+    let bytes = data.get(at..at + 4).context("truncated zip")?;
+    Ok(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as usize)
 }
 
-/// Which files of `manifest` differ from the local app folder.
-pub fn plan(
-    app_dir: &Path,
-    manifest: &UpdateManifest,
-    page: String,
-    cancel: &UpdateCancel,
-) -> Result<UpdatePlan> {
+/// Unpacks a zip (stored or deflated entries) into `out`, dropping the zip's single top-level
+/// folder (`BRP-ChromaKey2/BRP-Chroma.exe` -> `BRP-Chroma.exe`). Returns the unpacked files.
+fn unpack_zip(zip: &[u8], out: &Path) -> Result<Vec<PathBuf>> {
+    ensure!(zip.len() >= 22, "the update archive is too small");
+    let eocd = (0..=zip.len() - 22)
+        .rev()
+        .find(|&at| zip[at..at + 4] == [0x50, 0x4b, 0x05, 0x06])
+        .context("the update archive has no zip directory")?;
+    let count = usize::from(u16_at(zip, eocd + 10)?);
+    let mut at = u32_at(zip, eocd + 16)?;
+    let mut entries = Vec::with_capacity(count);
+    for _ in 0..count {
+        ensure!(u32_at(zip, at)? == 0x0201_4b50, "bad zip directory entry");
+        let method = u16_at(zip, at + 10)?;
+        let compressed = u32_at(zip, at + 20)?;
+        let size = u32_at(zip, at + 24)?;
+        let name_len = usize::from(u16_at(zip, at + 28)?);
+        let skip = usize::from(u16_at(zip, at + 30)?) + usize::from(u16_at(zip, at + 32)?);
+        let header = u32_at(zip, at + 42)?;
+        let name = zip
+            .get(at + 46..at + 46 + name_len)
+            .context("truncated zip directory")?;
+        let name = String::from_utf8_lossy(name).replace('\\', "/");
+        entries.push((name, method, compressed, size, header));
+        at += 46 + name_len + skip;
+    }
+    let prefix = entries
+        .first()
+        .and_then(|(name, ..)| name.split_once('/'))
+        .map(|(top, _)| format!("{top}/"))
+        .filter(|prefix| {
+            entries
+                .iter()
+                .all(|(name, ..)| name.starts_with(prefix.as_str()))
+        })
+        .unwrap_or_default();
     let mut files = Vec::new();
-    for file in &manifest.files {
-        if !up_to_date(app_dir, file, cancel)? {
-            files.push(file.clone());
+    for (name, method, compressed, size, header) in entries {
+        let relative = &name[prefix.len()..];
+        if relative.is_empty() || relative.ends_with('/') {
+            continue;
         }
+        let relative = relative_path(relative)?;
+        ensure!(u32_at(zip, header)? == 0x0403_4b50, "bad zip file header");
+        let start = header
+            + 30
+            + usize::from(u16_at(zip, header + 26)?)
+            + usize::from(u16_at(zip, header + 28)?);
+        let data = zip
+            .get(start..start + compressed)
+            .context("truncated zip data")?;
+        let bytes = match method {
+            0 => data.to_vec(),
+            8 => miniz_oxide::inflate::decompress_to_vec_with_limit(data, size)
+                .map_err(|error| anyhow::anyhow!("corrupt update archive: {error:?}"))?,
+            method => bail!("unsupported zip compression method {method}"),
+        };
+        ensure!(bytes.len() == size, "corrupt update archive");
+        let target = out.join(&relative);
+        if let Some(parent) = target.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(&target, bytes)?;
+        files.push(relative);
     }
-    Ok(UpdatePlan {
-        version: manifest.version.clone(),
-        notes: manifest.notes.clone(),
-        page,
-        bytes: files.iter().map(|f| f.size).sum(),
-        total_files: manifest.files.len(),
-        files,
-    })
+    ensure!(!files.is_empty(), "the update archive is empty");
+    Ok(files)
 }
 
 fn staging_dir(app_dir: &Path, version: &str) -> PathBuf {
@@ -298,8 +289,8 @@ fn staging_dir(app_dir: &Path, version: &str) -> PathBuf {
     app_dir.join(STAGING).join(safe)
 }
 
-/// Downloads every planned file into the staging folder and verifies it. Already staged and
-/// verified files (from an interrupted attempt) are kept. `progress(done_bytes, total_bytes)`.
+/// Downloads the release zip, verifies it and unpacks it into the staging folder, which is
+/// returned. `progress(done_bytes, total_bytes)`.
 pub fn download(
     app_dir: &Path,
     plan: &UpdatePlan,
@@ -307,64 +298,50 @@ pub fn download(
     mut progress: impl FnMut(u64, u64),
 ) -> Result<PathBuf> {
     let staging = staging_dir(app_dir, &plan.version);
-    let client = client()?;
-    let mut done = 0;
-    progress(0, plan.bytes);
-    for file in &plan.files {
-        cancel.check()?;
-        let target = staging.join(relative_path(&file.path)?);
-        if let Some(parent) = target.parent() {
-            fs::create_dir_all(parent)?;
-        }
-        let staged_ok = fs::metadata(&target).is_ok_and(|m| m.len() == file.size)
-            && sha256_file(&target, cancel)?.eq_ignore_ascii_case(&file.sha256);
-        if !staged_ok {
-            let part = target.with_extension("part");
-            let mut response = client
-                .get(&file.url)
-                .send()
-                .with_context(|| format!("downloading {}", file.path))?
-                .error_for_status()
-                .with_context(|| format!("downloading {}", file.path))?;
-            let mut output = File::create(&part)?;
-            let mut hash = Sha256::new();
-            let mut buffer = vec![0_u8; 1 << 20];
-            let mut received = 0_u64;
-            loop {
-                cancel.check()?;
-                let count = response.read(&mut buffer)?;
-                if count == 0 {
-                    break;
-                }
-                output.write_all(&buffer[..count])?;
-                hash.update(&buffer[..count]);
-                received += count as u64;
-                ensure!(
-                    received <= file.size,
-                    "{} is larger than expected",
-                    file.path
-                );
-                progress(done + received, plan.bytes);
-            }
-            output.sync_all()?;
-            drop(output);
-            let digest: String = hash
-                .finalize()
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect();
-            if received != file.size || !digest.eq_ignore_ascii_case(&file.sha256) {
-                let _ = fs::remove_file(&part);
-                bail!("{} failed verification", file.path);
-            }
-            if target.exists() {
-                fs::remove_file(&target)?;
-            }
-            fs::rename(&part, &target)?;
-        }
-        done += file.size;
-        progress(done, plan.bytes);
+    if staging.exists() {
+        fs::remove_dir_all(&staging).context("clearing an earlier update attempt")?;
     }
+    fs::create_dir_all(&staging)?;
+    let mut response = client()?
+        .get(&plan.zip_url)
+        .send()
+        .map_err(|error| error.without_url())
+        .context("downloading the update")?
+        .error_for_status()
+        .map_err(|error| error.without_url())
+        .context("downloading the update")?;
+    let mut zip = Vec::with_capacity(usize::try_from(plan.bytes).unwrap_or(0));
+    let mut buffer = vec![0_u8; 1 << 20];
+    progress(0, plan.bytes);
+    loop {
+        cancel.check()?;
+        let count = response.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        zip.extend_from_slice(&buffer[..count]);
+        ensure!(
+            zip.len() as u64 <= plan.bytes,
+            "the update is larger than announced"
+        );
+        progress(zip.len() as u64, plan.bytes);
+    }
+    ensure!(
+        zip.len() as u64 == plan.bytes,
+        "the update download was incomplete"
+    );
+    if let Some(expected) = &plan.sha256 {
+        let digest: String = Sha256::digest(&zip)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect();
+        ensure!(
+            digest.eq_ignore_ascii_case(expected),
+            "the update failed its checksum"
+        );
+    }
+    cancel.check()?;
+    unpack_zip(&zip, &staging)?;
     Ok(staging)
 }
 
@@ -374,34 +351,54 @@ fn old_name(path: &Path) -> PathBuf {
     path.with_file_name(name)
 }
 
-/// Swaps the staged files in. Each current file is renamed to `*.brp-old` first (possible while
+fn staged_files(staging: &Path) -> Result<Vec<PathBuf>> {
+    fn walk(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if entry.file_type()?.is_dir() {
+                walk(root, &path, out)?;
+            } else {
+                out.push(path.strip_prefix(root)?.to_path_buf());
+            }
+        }
+        Ok(())
+    }
+    let mut files = Vec::new();
+    walk(staging, staging, &mut files)?;
+    files.sort();
+    Ok(files)
+}
+
+/// Swaps every staged file in. Each current file is renamed to `*.brp-old` first (possible while
 /// it runs); on any failure every swapped file is restored. Writes `release.json` last.
 pub fn apply(app_dir: &Path, plan: &UpdatePlan, staging: &Path) -> Result<()> {
+    let files = staged_files(staging)?;
+    ensure!(!files.is_empty(), "nothing to install");
     let mut swapped: Vec<(PathBuf, Option<PathBuf>)> = Vec::new();
     let result = (|| -> Result<()> {
-        for file in &plan.files {
-            let relative = relative_path(&file.path)?;
-            let source = staging.join(&relative);
-            let destination = app_dir.join(&relative);
-            ensure!(source.is_file(), "{} was not downloaded", file.path);
+        for relative in &files {
+            let source = staging.join(relative);
+            let destination = app_dir.join(relative);
             if let Some(parent) = destination.parent() {
                 fs::create_dir_all(parent)?;
             }
             let backup = if destination.exists() {
                 let backup = old_name(&destination);
                 if backup.exists() {
-                    fs::remove_file(&backup)
-                        .with_context(|| format!("removing an old copy of {}", file.path))?;
+                    fs::remove_file(&backup).with_context(|| {
+                        format!("removing an old copy of {}", relative.display())
+                    })?;
                 }
                 fs::rename(&destination, &backup)
-                    .with_context(|| format!("moving the current {} aside", file.path))?;
+                    .with_context(|| format!("moving the current {} aside", relative.display()))?;
                 Some(backup)
             } else {
                 None
             };
             swapped.push((destination.clone(), backup));
             fs::rename(&source, &destination)
-                .with_context(|| format!("installing {}", file.path))?;
+                .with_context(|| format!("installing {}", relative.display()))?;
         }
         let release = serde_json::to_vec_pretty(&InstalledRelease {
             version: plan.version.clone(),
@@ -411,14 +408,14 @@ pub fn apply(app_dir: &Path, plan: &UpdatePlan, staging: &Path) -> Result<()> {
     })();
     if let Err(error) = result {
         for (destination, backup) in swapped.into_iter().rev() {
+            let _ = fs::remove_file(&destination);
             if let Some(backup) = backup {
-                let _ = fs::remove_file(&destination);
                 let _ = fs::rename(&backup, &destination);
             }
         }
         return Err(error);
     }
-    let _ = fs::remove_dir_all(staging);
+    let _ = fs::remove_dir_all(app_dir.join(STAGING));
     Ok(())
 }
 
@@ -446,22 +443,13 @@ pub fn cleanup_previous(app_dir: &Path) {
         }
     }
     walk(app_dir, 0);
+    let _ = fs::remove_dir_all(app_dir.join(STAGING));
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn manifest_accepts_future_optional_fields() {
-        let manifest: UpdateManifest = serde_json::from_str(
-            r#"{"schema_version":1,"version":"2027.1.1","min_app":"x","files":[
-                {"path":"a.dll","size":1,"sha256":"00","url":"https://x/a","compressed":true}]}"#,
-        )
-        .unwrap();
-        assert_eq!(manifest.files.len(), 1);
-        assert!(manifest.notes.is_empty());
-    }
+    use std::io::Write;
 
     #[test]
     fn versions_compare_numerically() {
@@ -489,7 +477,6 @@ mod tests {
         assert!(relative_path("models/sam3.1/frame/fp16/model.onnx").is_ok());
         assert!(relative_path("../evil.exe").is_err());
         assert!(relative_path("C:/Windows/evil.exe").is_err());
-        assert!(relative_path("a\\b").is_err());
         assert!(relative_path(".update-staging/x").is_err());
         assert!(relative_path("").is_err());
     }
@@ -507,125 +494,133 @@ mod tests {
         dir
     }
 
-    fn entry(path: &str, bytes: &[u8]) -> UpdateFile {
-        let mut hash = Sha256::new();
-        hash.update(bytes);
-        UpdateFile {
-            path: path.into(),
-            size: bytes.len() as u64,
-            sha256: hash.finalize().iter().map(|b| format!("{b:02x}")).collect(),
-            url: "https://example.invalid/x".into(),
+    /// A minimal zip writer (stored and deflated entries) under a top-level folder.
+    fn make_zip(files: &[(&str, &[u8], bool)]) -> Vec<u8> {
+        let mut out = Vec::new();
+        let mut directory = Vec::new();
+        let push16 = |v: &mut Vec<u8>, x: u16| v.extend_from_slice(&x.to_le_bytes());
+        let push32 = |v: &mut Vec<u8>, x: u32| v.extend_from_slice(&x.to_le_bytes());
+        for (name, bytes, deflate) in files {
+            let name = format!("BRP-ChromaKey2/{name}");
+            let data = if *deflate {
+                miniz_oxide::deflate::compress_to_vec(bytes, 6)
+            } else {
+                bytes.to_vec()
+            };
+            let method: u16 = if *deflate { 8 } else { 0 };
+            let offset = out.len() as u32;
+            push32(&mut out, 0x0403_4b50);
+            for value in [20, 0, method, 0, 0] {
+                push16(&mut out, value);
+            }
+            push32(&mut out, 0);
+            push32(&mut out, data.len() as u32);
+            push32(&mut out, bytes.len() as u32);
+            push16(&mut out, name.len() as u16);
+            push16(&mut out, 3); // local extra differs from the directory on purpose
+            out.extend_from_slice(name.as_bytes());
+            out.extend_from_slice(&[0, 0, 0]);
+            out.extend_from_slice(&data);
+            push32(&mut directory, 0x0201_4b50);
+            for value in [20, 20, 0, method, 0, 0] {
+                push16(&mut directory, value);
+            }
+            push32(&mut directory, 0);
+            push32(&mut directory, data.len() as u32);
+            push32(&mut directory, bytes.len() as u32);
+            push16(&mut directory, name.len() as u16);
+            for value in [0, 0, 0, 0] {
+                push16(&mut directory, value);
+            }
+            push32(&mut directory, 0);
+            push32(&mut directory, offset);
+            directory.extend_from_slice(name.as_bytes());
         }
+        let directory_offset = out.len() as u32;
+        out.extend_from_slice(&directory);
+        push32(&mut out, 0x0605_4b50);
+        for value in [0, 0, files.len() as u16, files.len() as u16] {
+            push16(&mut out, value);
+        }
+        push32(&mut out, directory.len() as u32);
+        push32(&mut out, directory_offset);
+        push16(&mut out, 0);
+        out
     }
 
-    #[test]
-    fn plan_lists_only_changed_files_and_apply_swaps_them() {
-        let app = temp_dir("apply");
-        fs::write(app.join("same.dll"), b"same").unwrap();
-        fs::write(app.join("app.exe"), b"old exe").unwrap();
-        let manifest = UpdateManifest {
-            schema_version: 1,
-            version: "2026.11.01.1".into(),
-            notes: String::new(),
-            files: vec![
-                entry("same.dll", b"same"),
-                entry("app.exe", b"new exe"),
-                entry("models/new/model.onnx", b"model"),
-            ],
-        };
-        let cancel = UpdateCancel::default();
-        let plan = plan(&app, &manifest, String::new(), &cancel).unwrap();
-        let changed: Vec<&str> = plan.files.iter().map(|f| f.path.as_str()).collect();
-        assert_eq!(changed, ["app.exe", "models/new/model.onnx"]);
-        assert_eq!(plan.bytes, 7 + 5);
-        // Stage as download() would.
-        let staging = staging_dir(&app, &plan.version);
-        fs::create_dir_all(staging.join("models/new")).unwrap();
-        fs::write(staging.join("app.exe"), b"new exe").unwrap();
-        fs::write(staging.join("models/new/model.onnx"), b"model").unwrap();
-        apply(&app, &plan, &staging).unwrap();
-        assert_eq!(fs::read(app.join("app.exe")).unwrap(), b"new exe");
-        assert_eq!(
-            fs::read(app.join("models/new/model.onnx")).unwrap(),
-            b"model"
-        );
-        assert_eq!(fs::read(app.join("app.exe.brp-old")).unwrap(), b"old exe");
-        assert_eq!(installed_version(&app), "2026.11.01.1");
-        assert!(!staging.exists());
-        cleanup_previous(&app);
-        assert!(!app.join("app.exe.brp-old").exists());
-        assert!(plan_is_empty(&app, &manifest));
-        fs::remove_dir_all(&app).unwrap();
-    }
-
-    fn plan_is_empty(app: &Path, manifest: &UpdateManifest) -> bool {
-        plan(app, manifest, String::new(), &UpdateCancel::default())
-            .unwrap()
-            .files
-            .is_empty()
-    }
-
-    /// Serves each body once over plain HTTP on localhost; returns the base URL.
-    fn serve(bodies: Vec<Vec<u8>>) -> String {
+    /// Serves `body` once over plain HTTP on localhost; returns the URL.
+    fn serve(body: Vec<u8>) -> String {
         use std::io::{BufRead, BufReader};
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         let port = listener.local_addr().unwrap().port();
         std::thread::spawn(move || {
-            for body in bodies {
-                let (mut stream, _) = listener.accept().unwrap();
-                let mut reader = BufReader::new(stream.try_clone().unwrap());
-                let mut line = String::new();
-                while reader.read_line(&mut line).unwrap() > 2 {
-                    line.clear();
-                }
-                let header = format!(
-                    "HTTP/1.1 200 OK
-Content-Length: {}
-Connection: close
-
-",
-                    body.len()
-                );
-                stream.write_all(header.as_bytes()).unwrap();
-                stream.write_all(&body).unwrap();
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut reader = BufReader::new(stream.try_clone().unwrap());
+            let mut line = String::new();
+            while reader.read_line(&mut line).unwrap() > 2 {
+                line.clear();
             }
+            let header = format!(
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                body.len()
+            );
+            stream.write_all(header.as_bytes()).unwrap();
+            stream.write_all(&body).unwrap();
         });
-        format!("http://127.0.0.1:{port}")
+        format!("http://127.0.0.1:{port}/BRP-ChromaKey2-9-windows-x64.zip")
+    }
+
+    fn plan_for(zip: &[u8], url: String, sha256: Option<String>) -> UpdatePlan {
+        UpdatePlan {
+            version: "2026.11.01.1".into(),
+            notes: String::new(),
+            page: String::new(),
+            bytes: zip.len() as u64,
+            zip_url: url,
+            sha256,
+        }
     }
 
     #[test]
-    fn download_streams_verifies_and_rejects_corrupt_files() {
-        let app = temp_dir("download");
-        let good = vec![7_u8; 3 * 1024 * 1024 + 5];
-        let base = serve(vec![good.clone(), b"tampered".to_vec()]);
-        let mut file = entry("bin/big.dll", &good);
-        file.url = format!("{base}/big");
-        let plan = UpdatePlan {
-            version: "3".into(),
-            notes: String::new(),
-            page: String::new(),
-            bytes: file.size,
-            files: vec![file],
-            total_files: 1,
-        };
-        let mut last = (0, 0);
+    fn downloads_unpacks_and_replaces_every_file() {
+        let app = temp_dir("zip");
+        fs::write(app.join("app.exe"), b"old exe").unwrap();
+        fs::write(app.join("kept-local.txt"), b"user file").unwrap();
+        let big: Vec<u8> = (0..300_000).map(|i| (i % 251) as u8).collect();
+        let zip = make_zip(&[
+            ("app.exe", b"new exe", true),
+            ("same.dll", b"same", false),
+            ("models/new/model.bin", &big, true),
+        ]);
+        let digest: String = Sha256::digest(&zip)
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        let plan = plan_for(&zip, serve(zip.clone()), Some(digest));
+        let mut last = (0, 1);
         let staging =
             download(&app, &plan, &UpdateCancel::default(), |d, t| last = (d, t)).unwrap();
-        assert_eq!(fs::read(staging.join("bin/big.dll")).unwrap(), good);
-        assert_eq!(last, (good.len() as u64, good.len() as u64));
-        // A file whose bytes do not match the manifest is rejected and not staged.
-        let mut bad = entry("x.dll", b"original");
-        bad.url = format!("{base}/bad");
-        let bad_plan = UpdatePlan {
-            version: "4".into(),
-            notes: String::new(),
-            page: String::new(),
-            bytes: bad.size,
-            files: vec![bad],
-            total_files: 1,
-        };
-        assert!(download(&app, &bad_plan, &UpdateCancel::default(), |_, _| {}).is_err());
-        assert!(!staging_dir(&app, "4").join("x.dll").exists());
+        assert_eq!(last, (zip.len() as u64, zip.len() as u64));
+        apply(&app, &plan, &staging).unwrap();
+        assert_eq!(fs::read(app.join("app.exe")).unwrap(), b"new exe");
+        assert_eq!(fs::read(app.join("same.dll")).unwrap(), b"same");
+        assert_eq!(fs::read(app.join("models/new/model.bin")).unwrap(), big);
+        assert_eq!(fs::read(app.join("kept-local.txt")).unwrap(), b"user file");
+        assert_eq!(fs::read(app.join("app.exe.brp-old")).unwrap(), b"old exe");
+        assert_eq!(installed_version(&app), "2026.11.01.1");
+        assert!(!app.join(STAGING).exists());
+        cleanup_previous(&app);
+        assert!(!app.join("app.exe.brp-old").exists());
+        fs::remove_dir_all(&app).unwrap();
+    }
+
+    #[test]
+    fn a_zip_that_fails_its_checksum_is_not_installed() {
+        let app = temp_dir("checksum");
+        let zip = make_zip(&[("x.dll", b"tampered", false)]);
+        let plan = plan_for(&zip, serve(zip.clone()), Some("00".repeat(32)));
+        assert!(download(&app, &plan, &UpdateCancel::default(), |_, _| {}).is_err());
+        assert!(!app.join("x.dll").exists());
         fs::remove_dir_all(&app).unwrap();
     }
 
@@ -634,17 +629,14 @@ Connection: close
         let app = temp_dir("rollback");
         fs::write(app.join("a.dll"), b"old a").unwrap();
         fs::write(app.join("b.dll"), b"old b").unwrap();
-        let plan = UpdatePlan {
-            version: "2".into(),
-            notes: String::new(),
-            page: String::new(),
-            files: vec![entry("a.dll", b"new a"), entry("b.dll", b"new b")],
-            bytes: 10,
-            total_files: 2,
-        };
+        // b.dll is in use as a folder name, so installing it fails after a.dll was swapped.
         let staging = staging_dir(&app, "2");
-        fs::create_dir_all(&staging).unwrap();
-        fs::write(staging.join("a.dll"), b"new a").unwrap(); // b.dll missing -> failure
+        fs::create_dir_all(staging.join("b.dll")).unwrap();
+        fs::write(staging.join("a.dll"), b"new a").unwrap();
+        fs::write(staging.join("b.dll").join("inner"), b"x").unwrap();
+        fs::remove_file(app.join("b.dll")).unwrap();
+        fs::write(app.join("b.dll"), b"old b").unwrap();
+        let plan = plan_for(&[], String::new(), None);
         assert!(apply(&app, &plan, &staging).is_err());
         assert_eq!(fs::read(app.join("a.dll")).unwrap(), b"old a");
         assert_eq!(fs::read(app.join("b.dll")).unwrap(), b"old b");

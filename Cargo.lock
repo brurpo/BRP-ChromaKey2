@@ -375,6 +375,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "ck-core",
+ "miniz_oxide 0.8.9",
  "reqwest",
  "serde",
  "serde_json",

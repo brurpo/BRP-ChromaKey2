@@ -18,7 +18,7 @@ The app is written in Rust. It doesn't need Python, CUDA or a PyTorch install, a
 - **Export** a single frame or a range as ProRes 4444 with alpha, PNG sequence or linear-light EXR.
 - **Portable projects**: one `.chroma` file holds the calculated frames and masks, and can embed the source media too.
 - **Undo/redo** everywhere, GPU selection, and a memory-aware **Auto** mode that sizes the work to your graphics card.
-- **Updates itself**: on start it checks this repository's releases and downloads only the files that changed. Models download once, on first start.
+- **Updates itself**: on start it checks this repository's latest release and, if it is newer, downloads it (about 35 MB) and installs it after a restart. Models download once, on first start.
 
 ## Download
 

@@ -51,10 +51,10 @@ Or download a release zip and copy its `media` folder to `.tools/media/bin`.
 **6. Package:**
 
 ```powershell
-.\tools\package.ps1 -MediaDir .tools\media
+.\tools\package.ps1 -MediaDir .tools\media -Version 2026.11.1.1
 ```
 
-This creates `dist\BRP-ChromaKey2` with `BRP-Chroma.exe`, the worker, the runtime, FFmpeg, the license texts, `inventory.json` and `assets-manifest.json`. Run `BRP-Chroma.exe` from there. On first start it downloads the models listed in `assets/windows-x86_64-directml.json`.
+This creates `dist\BRP-ChromaKey2` and `dist\BRP-ChromaKey2-<version>-windows-x64.zip`. The folder has `BRP-Chroma.exe`, the worker, the runtime, FFmpeg, the license texts, `inventory.json` and `assets-manifest.json`. Run `BRP-Chroma.exe` from there. On first start it downloads the models listed in `assets/windows-x86_64-directml.json`.
 
 ## Tests and checks
 
@@ -69,14 +69,13 @@ Tests that need models, footage or a GPU are marked `#[ignore]` or skip themselv
 
 ## Releases
 
-`tools/publish-release.ps1` publishes a packaged folder as a GitHub release that the in-app updater understands. It uploads only the files that changed since the previous release and writes `brp-chroma-update.json`, a list of every file with its SHA-256 and download URL. Installed copies compare that list against their own files, so any older version updates straight to the newest one.
+`tools/publish-release.ps1` publishes the zip from step 6 as a GitHub release with that zip as its only asset. Installed copies compare their `release.json` with the latest release's tag. When it is newer, they download the zip, check it against the SHA-256 digest GitHub publishes for the asset, and replace their files, so any older version updates straight to the newest one.
 
 ```powershell
 $env:GITHUB_TOKEN = '<token with contents:write>'
-.\tools\publish-release.ps1 -AppDir dist\BRP-ChromaKey2 -Version 2026.11.1.1 -NotesFile notes.md
+.\tools\publish-release.ps1 -Version 2026.11.1.1 -NotesFile notes.md
 ```
 
-Add `-DryRun` to see what would be uploaded without touching GitHub.
 
 ## Models
 

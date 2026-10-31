@@ -49,20 +49,10 @@ impl Updater {
             open: false,
         };
         if enabled {
-            let cancel = this.cancel.clone();
             std::thread::spawn(move || {
                 let current = updater::installed_version(&app_dir);
-                let result =
-                    updater::check_latest(updater::UPDATE_REPOSITORY, &current).and_then(|found| {
-                        match found {
-                            Some((manifest, page)) => {
-                                updater::plan(&app_dir, &manifest, page, &cancel).map(Some)
-                            }
-                            None => Ok(None),
-                        }
-                    });
-                let next = match result {
-                    Ok(Some(plan)) if !plan.files.is_empty() => State::Available(plan),
+                let next = match updater::check_latest(updater::UPDATE_REPOSITORY, &current) {
+                    Ok(Some(plan)) => State::Available(plan),
                     Ok(_) => State::UpToDate,
                     Err(error) => State::CheckFailed(format!("{error:#}")),
                 };
@@ -134,10 +124,8 @@ impl Updater {
                         RichText::new(format!("BRP CHROMA {} is available", plan.version)).strong(),
                     );
                     ui.label(format!(
-                        "Installed: {}. {} of {} files changed, {} to download.",
+                        "Installed: {}. Download: {}.",
                         installed_label(&updater::installed_version(&self.app_dir)),
-                        plan.files.len(),
-                        plan.total_files,
                         size(plan.bytes)
                     ));
                     if !plan.notes.trim().is_empty() {

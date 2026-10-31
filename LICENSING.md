@@ -34,10 +34,10 @@ Full texts, publishers, pinned upstream revisions and original checkpoint hashes
 | ONNX Runtime 1.23.0 | MIT | `licenses/runtime/ONNXRUNTIME_*` |
 | DirectML 1.15.4 | Microsoft DirectML license (redistributable) | `licenses/runtime/DIRECTML_*` |
 | Visual C++ runtime 14.39 | Microsoft Visual C++ Runtime license | `licenses/runtime/MICROSOFT_VISUAL_CPP_RUNTIME_LICENSE.txt` |
-| FFmpeg, x264, zlib | **GPL v2** (FFmpeg is built with `--enable-gpl` for x264), zlib license | Source archives for the exact build are attached to every release |
+| FFmpeg, x264, zlib | **GPL v2** (FFmpeg is built with `--enable-gpl` for x264), zlib license | Source archives for the exact build are on the [`ffmpeg-source`](https://github.com/brurpo/BRP-ChromaKey2/tree/ffmpeg-source) branch |
 | MinGW-w64 winpthreads | MIT-style | `licenses/runtime/MINGW_RUNTIME_COPYRIGHT.txt` |
 
-Because the bundled FFmpeg is a GPL build, a release package as a whole is distributed under GPL v2-compatible terms. Our MIT code is compatible with that. For the GPL parts, the corresponding source is the `ffmpeg-source` archives attached to each release and `tools/build-media.sh`, which rebuilds them.
+Because the bundled FFmpeg is a GPL build, a release package as a whole is distributed under GPL v2-compatible terms. Our MIT code is compatible with that. For the GPL parts, the corresponding source is in the `ffmpeg-source` branch of this repository (the FFmpeg, x264 and zlib archives used, plus the build configuration), and `tools/build-media.sh` rebuilds them.
 
 ## Rust dependencies
 
