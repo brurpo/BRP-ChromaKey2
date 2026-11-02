@@ -10,7 +10,6 @@ The app is written in Rust. It doesn't need Python, CUDA or a PyTorch install, a
 
 - **Neural keying with CorridorKey 2.0** at the footage's own resolution (720p to 4K and beyond) with temporal consistency across frames.
 - **Subject segmentation with SAM 3.1 or SAM 2.1.** Click points, draw boxes or type what you want ("person", "the red umbrella"). Masks track forward and backward from any frame you prompt. Several **layers** per scene can each keep or remove something, and the combined mask can guide the keyer or be exported as PNGs.
-- **Prompts in Brazilian Portuguese.** Text prompts are translated to English on the CPU behind the scenes ("pessoa de chapéu" just works). A small line under the prompt shows the English version.
 - **Automatic scene detection** (TransNetV2). Scenes can be split, merged, enabled, disabled and given their own settings.
 - **Garbage and despill masks**: bezier shapes with keyframes, feathering, add/subtract/intersect modes and per-scene stacks.
 - **Live despill** (0–100%) that recomposites already-calculated frames instantly.
