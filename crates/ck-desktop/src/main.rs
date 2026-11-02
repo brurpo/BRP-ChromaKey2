@@ -22,6 +22,7 @@ mod ram_cache;
 mod range_export;
 mod sam_layers;
 mod studio;
+mod subject_history;
 mod theme;
 mod timeline;
 mod translation;

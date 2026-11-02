@@ -137,7 +137,7 @@ impl CkSettings {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SamPrompt {
     /// Absolute zero-based source frame, in original image pixel coordinates.
     pub frame: u64,

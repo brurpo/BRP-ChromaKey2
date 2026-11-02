@@ -106,6 +106,12 @@ struct Session {
     mask_ui: MaskUi,
     /// Bounded undo/redo snapshots of the mask stacks.
     mask_history: crate::mask_history::MaskHistory,
+    /// Undo/redo of subject (SAM) points, boxes and layers, observed once per frame.
+    subject_history: crate::subject_history::SubjectHistory,
+    /// Undo/redo of scenes, In/Out, overrides and settings, observed once per frame.
+    doc_history: crate::app_history::AppHistory,
+    /// Scenes at the last subject observation: a scene edit restarts the subject history.
+    subject_scenes: Vec<ck_desktop_core::SceneRange>,
     /// Bumped by every mask edit. Kept apart from `revision` so a mask edit only
     /// invalidates the frames whose masks changed (see `mask_fingerprint`).
     mask_revision: u64,
@@ -148,6 +154,9 @@ impl Session {
             mask_stacks,
             mask_ui: MaskUi::default(),
             mask_history: crate::mask_history::MaskHistory::default(),
+            subject_history: crate::subject_history::SubjectHistory::default(),
+            doc_history: crate::app_history::AppHistory::default(),
+            subject_scenes: Vec::new(),
             mask_revision: 0,
             mask_snapshot: None,
         }
@@ -252,6 +261,54 @@ impl Session {
     #[cfg(test)]
     fn discard_mask_edit_record(&mut self) {
         self.mask_history.discard_last();
+    }
+
+    fn subject_state(&self) -> crate::subject_history::SubjectState {
+        crate::subject_history::SubjectState {
+            prompts: self.project.prompts.clone(),
+            boxes: self.project.sam_boxes.clone(),
+            layers: self.project.sam_layers.clone(),
+        }
+    }
+
+    /// Records a subject undo step when points, boxes or layers changed since the last frame.
+    /// Changes that come with a scene edit (split, merge, detection) are accepted without a step.
+    fn observe_subject_edits(&mut self, continuing: bool) {
+        let state = self.subject_state();
+        if self.subject_scenes != self.project.scenes {
+            self.subject_scenes = self.project.scenes.clone();
+            self.subject_history.reset(&state);
+            return;
+        }
+        self.subject_history
+            .observe(&state, continuing, std::time::Instant::now());
+    }
+
+    /// Puts `state` back and drops the SAM results of every layer it changes; returns them.
+    fn apply_subject_state(&mut self, state: crate::subject_history::SubjectState) -> Vec<u64> {
+        let changed = self.subject_state().changed_layers(&state);
+        self.project.prompts = state.prompts;
+        self.project.sam_boxes = state.boxes;
+        self.project.sam_layers = state.layers;
+        let playhead = self.playhead;
+        for &layer in &changed {
+            self.invalidate_prompt_scene(playhead, layer);
+        }
+        self.sync_sam_layer();
+        self.invalidate_sam_composites();
+        changed
+    }
+
+    fn undo_subject_edit(&mut self) -> Option<Vec<u64>> {
+        let current = self.subject_state();
+        let previous = self.subject_history.undo(&current)?;
+        Some(self.apply_subject_state(previous))
+    }
+
+    fn redo_subject_edit(&mut self) -> Option<Vec<u64>> {
+        let current = self.subject_state();
+        let next = self.subject_history.redo(&current)?;
+        Some(self.apply_subject_state(next))
     }
 
     fn undo_mask_edit(&mut self) -> bool {
@@ -1194,7 +1251,6 @@ pub struct Studio {
     ram_total: u64,
     result_cache: crate::frame_cache::ResultRamCache,
     preview_cache: std::sync::Arc<preview::PreviewCacheState>,
-    app_history: crate::app_history::AppHistory,
     auto_cache: Option<AutoResultCache>,
     left_panel_rect: Rect,
     inspector_rect: Rect,
@@ -1333,7 +1389,6 @@ impl Studio {
                 cache_limits.result_items,
             ),
             preview_cache,
-            app_history: crate::app_history::AppHistory::default(),
             auto_cache: None,
             left_panel_rect: Rect::NOTHING,
             inspector_rect: Rect::NOTHING,
@@ -2874,9 +2929,6 @@ impl Studio {
         artifacts: &JobArtifacts,
         sam_layer: Option<u64>,
     ) {
-        if !artifacts.scenes.is_empty() {
-            self.record_app_edit(crate::app_history::AppContext::Timeline, "scene detection");
-        }
         let visible = self
             .current()
             .is_some_and(|session| session.id == session_id);
@@ -4045,21 +4097,11 @@ impl Studio {
                     });
             },
         );
-        let embed_before = self.app_snapshot();
         self.icons
             .checkbox(ui, &mut self.embed_sources, "Embed sources")
             .on_hover_text(
                 "Rendered footage is always inside .chroma. Include original and hint media too; existing embedded media is retained.",
             );
-        if let Some(before) = embed_before
-            && before.embed_sources != self.embed_sources
-        {
-            self.app_history.record(
-                crate::app_history::AppContext::Media,
-                "embed sources",
-                before,
-            );
-        }
         if let Some(index) = choose {
             self.selected = index;
             self.loaded = None;
@@ -4770,13 +4812,6 @@ impl Studio {
     }
 
     fn tools(&mut self, ctx: &egui::Context) {
-        let history_before = self.app_snapshot();
-        let settings_before = self.current().map(|session| {
-            (
-                session.project.ck_settings.clone(),
-                session.project.despill_settings,
-            )
-        });
         egui::SidePanel::right("studio_inspector")
             .default_width(330.0)
             .min_width(285.0)
@@ -4884,21 +4919,6 @@ impl Studio {
                     });
                 self.inspector_rect = ui.min_rect();
             });
-        if let (Some(before), Some((ck_settings, despill_settings))) =
-            (history_before, settings_before)
-        {
-            let changed = self.current().is_some_and(|session| {
-                session.project.ck_settings != ck_settings
-                    || session.project.despill_settings != despill_settings
-            });
-            if changed {
-                self.app_history.record(
-                    crate::app_history::AppContext::Keyer,
-                    "inspector settings",
-                    before,
-                );
-            }
-        }
     }
 
     fn keyer_controls(&mut self, ui: &mut egui::Ui) {
@@ -5890,26 +5910,12 @@ impl Studio {
                     )
                 };
                 self.current_mut().unwrap().timeline_view = track_view;
-                if let Some(
-                    timeline::TrackAction::SetPlaybackRange(_)
-                    | timeline::TrackAction::SetSceneEnabled { .. }
-                    | timeline::TrackAction::SplitScene
-                    | timeline::TrackAction::MergeNext
-                    | timeline::TrackAction::MergePrevious,
-                ) = &action
-                {
-                    self.record_app_edit(crate::app_history::AppContext::Timeline, "timeline edit");
-                }
                 match action {
                     Some(timeline::TrackAction::Seek(frame)) => {
                         self.current_mut().unwrap().seek(frame);
                         self.playing = false;
                     }
                     Some(timeline::TrackAction::SetSceneDespill { scene, amount }) => {
-                        self.record_app_edit(
-                            crate::app_history::AppContext::Timeline,
-                            "scene despill override",
-                        );
                         if let Some(session) = self.current_mut()
                             && set_scene_despill(&mut session.project, scene, amount)
                         {
@@ -5967,10 +5973,6 @@ impl Studio {
                     None => {}
                 }
                 if range_changed {
-                    self.record_app_edit(
-                        crate::app_history::AppContext::Timeline,
-                        "playback range",
-                    );
                     self.current_mut().unwrap().range = FrameRange {
                         start: in_display.min(out_display).saturating_sub(1),
                         end_exclusive: out_display.max(in_display),
@@ -6029,62 +6031,92 @@ impl Studio {
         }
     }
 
-    fn app_snapshot(&self) -> Option<crate::app_history::AppSnapshot> {
+    fn doc_snapshot(&self) -> Option<crate::app_history::DocSnapshot> {
         let session = self.current()?;
-        Some(crate::app_history::AppSnapshot {
-            session_key: session.key.clone(),
-            project: session.project.clone(),
+        let project = &session.project;
+        Some(crate::app_history::DocSnapshot {
+            scenes: project.scenes.clone(),
+            scene_overrides: project.scene_overrides.clone(),
+            ck_settings: project.ck_settings.clone(),
+            despill_settings: project.despill_settings,
+            hint_quality: project.hint_quality,
+            output_dir: project.output_dir.clone(),
             range: session.range,
-            playhead: session.playhead,
             embed_sources: self.embed_sources,
+            prompts: project.prompts.clone(),
+            sam_boxes: project.sam_boxes.clone(),
+            sam_layers: project.sam_layers.clone(),
         })
     }
 
-    fn record_app_edit(&mut self, context: crate::app_history::AppContext, label: &'static str) {
-        if let Some(snapshot) = self.app_snapshot() {
-            self.app_history.record(context, label, snapshot);
+    /// Records any document edit made since the last frame as an undo step.
+    fn observe_document(&mut self, continuing: bool) {
+        let Some(snapshot) = self.doc_snapshot() else {
+            return;
+        };
+        if let Some(session) = self.current_mut() {
+            session
+                .doc_history
+                .observe(&snapshot, continuing, std::time::Instant::now());
         }
     }
 
-    fn restore_app_snapshot(&mut self, snapshot: crate::app_history::AppSnapshot) -> bool {
-        let Some(index) = self
-            .sessions
-            .iter()
-            .position(|session| session.key == snapshot.session_key)
-        else {
-            return false;
+    /// Puts back the `groups` parts of `snapshot` (see `app_history::group`).
+    fn apply_doc_snapshot(&mut self, snapshot: crate::app_history::DocSnapshot, groups: u8) {
+        use crate::app_history::group;
+        let Some(session) = self.current_mut() else {
+            return;
         };
-        self.selected = index;
-        let session = &mut self.sessions[index];
-        // Media imports and the runtime mask stacks are not part of this
-        // snapshot; keep them while restoring the editable document state.
-        let media = session.project.media.clone();
-        let mask_layers = session.project.mask_layers.clone();
-        let mut project = snapshot.project;
-        project.media = media;
-        project.mask_layers = mask_layers;
-        session.project = project;
-        session.range = snapshot.range;
-        let last_frame = session.media().frame_count.saturating_sub(1);
-        session.playhead = snapshot.playhead.min(last_frame);
+        let project = &mut session.project;
+        if groups & group::SCENES != 0 {
+            project.scenes = snapshot.scenes;
+            project.prompts = snapshot.prompts;
+            project.sam_boxes = snapshot.sam_boxes;
+            project.sam_layers = snapshot.sam_layers;
+        }
+        if groups & group::OVERRIDES != 0 {
+            project.scene_overrides = snapshot.scene_overrides;
+        }
+        if groups & group::KEYER != 0 {
+            project.ck_settings = snapshot.ck_settings;
+            project.despill_settings = snapshot.despill_settings;
+            project.hint_quality = snapshot.hint_quality;
+            project.output_dir = snapshot.output_dir;
+        }
+        if groups & group::RANGE != 0 {
+            session.range = snapshot.range;
+        }
         session.selected_scene =
             timeline::scene_index_at_frame(&session.project.scenes, session.playhead).unwrap_or(0);
         session.revision = session.revision.wrapping_add(1);
-        session.sync_mask_selection();
-        self.embed_sources = snapshot.embed_sources;
+        if groups & group::SCENES != 0 {
+            session.sync_sam_layer();
+            session.sync_mask_selection();
+            session.invalidate_sam_composites();
+        }
+        if groups & group::MEDIA != 0 {
+            self.embed_sources = snapshot.embed_sources;
+        }
         self.loaded = None;
         self.requested_key = None;
         self.playing = false;
-        true
     }
 
     fn pointer_undo_context(&self, pointer: Option<Pos2>) -> crate::app_history::AppContext {
         use crate::app_history::AppContext;
+        // Over the viewer and neutral areas, the open left tab decides what Ctrl+Z undoes.
+        let tab_context = if self.left_tab == LeftTab::Subject {
+            AppContext::Subject
+        } else if self.active_mask_tab().is_some() {
+            AppContext::Mask
+        } else {
+            AppContext::Global
+        };
         let Some(pointer) = pointer else {
-            return AppContext::Global;
+            return tab_context;
         };
         if self.viewer_canvas.contains(pointer) {
-            return AppContext::Mask;
+            return tab_context;
         }
         if self.timeline_rect.contains(pointer) {
             return AppContext::Timeline;
@@ -6093,66 +6125,93 @@ impl Studio {
             return AppContext::Keyer;
         }
         if self.left_panel_rect.contains(pointer) {
-            return if self.active_mask_tab().is_some() {
-                AppContext::Mask
-            } else {
+            return if tab_context == AppContext::Global {
                 AppContext::Media
+            } else {
+                tab_context
             };
         }
-        AppContext::Global
+        tab_context
+    }
+
+    /// After a subject undo/redo the selected layer's mask on this frame is recomputed, as after
+    /// any point edit.
+    fn resegment_after_subject_undo(&mut self, changed: &[u64]) {
+        if let Some(session) = self.current()
+            && changed.contains(&session.sam_layer)
+        {
+            self.segment_pending = Some((session.playhead, session.sam_layer));
+        }
     }
 
     fn undo_at_pointer(&mut self, ctx: &egui::Context) {
-        use crate::app_history::AppContext;
         let context = self.pointer_undo_context(ctx.pointer_hover_pos());
-        if context == AppContext::Mask
-            && let Some(session) = self.current_mut()
-            && session.undo_mask_edit()
-        {
-            return;
-        }
-        if let Some(current) = self.app_snapshot()
-            && let Some(snapshot) = self.app_history.undo_for(context, current.clone())
-        {
-            self.restore_app_snapshot(snapshot);
-            return;
-        }
-        if let Some(snapshot) = self
-            .app_snapshot()
-            .and_then(|current| self.app_history.undo_for(AppContext::Global, current))
-        {
-            self.restore_app_snapshot(snapshot);
-            return;
-        }
-        if let Some(session) = self.current_mut() {
-            session.undo_mask_edit();
-        }
+        self.undo_in(context);
     }
 
     fn redo_at_pointer(&mut self, ctx: &egui::Context) {
-        use crate::app_history::AppContext;
         let context = self.pointer_undo_context(ctx.pointer_hover_pos());
-        if context == AppContext::Mask
-            && let Some(session) = self.current_mut()
-            && session.redo_mask_edit()
-        {
-            return;
+        self.redo_in(context);
+    }
+
+    /// Undoes the newest edit of the kind `context` covers. Subject points, garbage/despill
+    /// masks and the document (scenes, range, settings) each have their own history, so an undo
+    /// never reverts an unrelated edit.
+    fn undo_in(&mut self, context: crate::app_history::AppContext) {
+        use crate::app_history::AppContext;
+        match context {
+            AppContext::Subject => {
+                if let Some(changed) = self.current_mut().and_then(Session::undo_subject_edit) {
+                    self.resegment_after_subject_undo(&changed);
+                }
+            }
+            AppContext::Mask => {
+                if let Some(session) = self.current_mut()
+                    && session.undo_mask_edit()
+                {
+                    self.requested_key = None;
+                }
+            }
+            _ => {
+                let Some(current) = self.doc_snapshot() else {
+                    return;
+                };
+                let restored = self
+                    .current_mut()
+                    .and_then(|session| session.doc_history.undo(context, &current));
+                if let Some((snapshot, groups)) = restored {
+                    self.apply_doc_snapshot(snapshot, groups);
+                }
+            }
         }
-        if let Some(current) = self.app_snapshot()
-            && let Some(snapshot) = self.app_history.redo_for(context, current.clone())
-        {
-            self.restore_app_snapshot(snapshot);
-            return;
-        }
-        if let Some(snapshot) = self
-            .app_snapshot()
-            .and_then(|current| self.app_history.redo_for(AppContext::Global, current))
-        {
-            self.restore_app_snapshot(snapshot);
-            return;
-        }
-        if let Some(session) = self.current_mut() {
-            session.redo_mask_edit();
+    }
+
+    fn redo_in(&mut self, context: crate::app_history::AppContext) {
+        use crate::app_history::AppContext;
+        match context {
+            AppContext::Subject => {
+                if let Some(changed) = self.current_mut().and_then(Session::redo_subject_edit) {
+                    self.resegment_after_subject_undo(&changed);
+                }
+            }
+            AppContext::Mask => {
+                if let Some(session) = self.current_mut()
+                    && session.redo_mask_edit()
+                {
+                    self.requested_key = None;
+                }
+            }
+            _ => {
+                let Some(current) = self.doc_snapshot() else {
+                    return;
+                };
+                let restored = self
+                    .current_mut()
+                    .and_then(|session| session.doc_history.redo(context, &current));
+                if let Some((snapshot, groups)) = restored {
+                    self.apply_doc_snapshot(snapshot, groups);
+                }
+            }
         }
     }
 
@@ -7059,9 +7118,6 @@ impl Studio {
         if space {
             self.toggle_playback();
         }
-        if mark_in || mark_out {
-            self.record_app_edit(crate::app_history::AppContext::Timeline, "playback range");
-        }
         if let Some(session) = self.current_mut() {
             if left {
                 session.seek(session.playhead.saturating_sub(if shift { 10 } else { 1 }));
@@ -7212,9 +7268,14 @@ impl Studio {
 
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // A held pointer or a focused text field keeps extending the current subject undo step.
+        let continuing =
+            ctx.input(|input| input.pointer.primary_down()) || ctx.wants_keyboard_input();
         if let Some(session) = self.current_mut() {
             session.sync_sam_layer();
+            session.observe_subject_edits(continuing);
         }
+        self.observe_document(continuing);
         self.pump_auto_result_cache();
         if self.startup_maximize {
             // Send this once the native window exists, after creation geometry
@@ -9549,6 +9610,8 @@ mod tests {
         }];
         session.add_mask_layer(MaskKind::Garbage);
         studio.sessions.push(session);
+        // Mask edits are made on the Garbage/Despill tabs, which route Ctrl+Z to the masks.
+        studio.left_tab = LeftTab::Garbage;
         let _ = ctx.run(
             egui::RawInput {
                 screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(960.0, 640.0))),
@@ -9584,9 +9647,30 @@ mod tests {
         studio.left_panel_rect =
             Rect::from_min_size(Pos2::new(-100.0, 0.0), Vec2::new(100.0, 100.0));
         use crate::app_history::AppContext;
+        // Over the viewer, the open left tab decides: masks, subject or the document.
+        studio.left_tab = LeftTab::Garbage;
         assert_eq!(
             studio.pointer_undo_context(Some(Pos2::new(50.0, 50.0))),
             AppContext::Mask
+        );
+        assert_eq!(
+            studio.pointer_undo_context(Some(Pos2::new(-50.0, 50.0))),
+            AppContext::Mask
+        );
+        studio.left_tab = LeftTab::Subject;
+        assert_eq!(
+            studio.pointer_undo_context(Some(Pos2::new(50.0, 50.0))),
+            AppContext::Subject
+        );
+        // The timeline and inspector always undo their own edits.
+        assert_eq!(
+            studio.pointer_undo_context(Some(Pos2::new(250.0, 50.0))),
+            AppContext::Timeline
+        );
+        studio.left_tab = LeftTab::Media;
+        assert_eq!(
+            studio.pointer_undo_context(Some(Pos2::new(50.0, 50.0))),
+            AppContext::Global
         );
         assert_eq!(
             studio.pointer_undo_context(Some(Pos2::new(250.0, 50.0))),
@@ -9627,11 +9711,12 @@ mod tests {
         let original = session.range;
         studio.sessions.push(session);
         studio.timeline_rect = Rect::from_min_size(Pos2::new(500.0, 500.0), Vec2::new(200.0, 80.0));
-        studio.record_app_edit(crate::app_history::AppContext::Timeline, "test range");
+        studio.observe_document(false);
         studio.sessions[0].range = FrameRange {
             start: 5,
             end_exclusive: 40,
         };
+        studio.observe_document(false);
         let pointer = Pos2::new(550.0, 550.0);
         let _ = ctx.run(
             egui::RawInput {
@@ -9654,6 +9739,149 @@ mod tests {
     }
 
     #[test]
+    fn subject_undo_removes_the_point_and_keeps_the_scene_split() {
+        let ctx = egui::Context::default();
+        ctx.set_pixels_per_point(1.0);
+        let creation = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut studio = Studio::new(&creation, PathBuf::new(), None, None, true, false, None);
+        let mut session = session();
+        session.project.scenes = vec![SceneRange {
+            index: 0,
+            start: 0,
+            end_exclusive: 100,
+            enabled: true,
+        }];
+        session.playhead = 50;
+        studio.sessions.push(session);
+        studio.sessions[0].observe_subject_edits(false);
+        // Split the scene at the playhead (an app-wide timeline edit).
+        studio.observe_document(false);
+        studio.split_scene();
+        studio.observe_document(false);
+        studio.sessions[0].observe_subject_edits(false);
+        let scenes = studio.sessions[0].project.scenes.clone();
+        assert_eq!(scenes.len(), 2);
+        // Add a subject point (creates the scene's layer), then a second one.
+        let add_point = |studio: &mut Studio, x: f32| {
+            let session = &mut studio.sessions[0];
+            let layer = session.layer_for_edit();
+            session.project.prompts.push(SamPrompt {
+                frame: 50,
+                x,
+                y: 10.0,
+                positive: true,
+                layer,
+                text: None,
+            });
+            session.observe_subject_edits(false);
+        };
+        add_point(&mut studio, 10.0);
+        add_point(&mut studio, 20.0);
+        studio.left_tab = LeftTab::Subject;
+        studio.viewer_canvas =
+            Rect::from_min_size(Pos2::new(100.0, 100.0), Vec2::new(400.0, 300.0));
+        let undo = |studio: &mut Studio| {
+            let _ = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1200.0, 800.0))),
+                    events: vec![
+                        egui::Event::PointerMoved(Pos2::new(200.0, 200.0)),
+                        egui::Event::Key {
+                            key: egui::Key::Z,
+                            physical_key: None,
+                            pressed: true,
+                            repeat: false,
+                            modifiers: egui::Modifiers::COMMAND,
+                        },
+                    ],
+                    ..Default::default()
+                },
+                |ctx| studio.input(ctx),
+            );
+            studio.sessions[0].observe_subject_edits(false);
+        };
+        undo(&mut studio);
+        assert_eq!(studio.sessions[0].project.prompts.len(), 1);
+        undo(&mut studio);
+        assert!(studio.sessions[0].project.prompts.is_empty());
+        // Nothing left to undo on the Subject tab: the split stays.
+        undo(&mut studio);
+        assert_eq!(studio.sessions[0].project.scenes, scenes);
+    }
+
+    #[test]
+    fn each_area_undoes_only_its_own_edits() {
+        use crate::app_history::AppContext;
+        let ctx = egui::Context::default();
+        let creation = eframe::CreationContext::_new_kittest(ctx.clone());
+        let mut studio = Studio::new(&creation, PathBuf::new(), None, None, true, false, None);
+        let mut session = session();
+        session.project.scenes = vec![SceneRange {
+            index: 0,
+            start: 0,
+            end_exclusive: 100,
+            enabled: true,
+        }];
+        session.range = FrameRange {
+            start: 0,
+            end_exclusive: 100,
+        };
+        session.playhead = 50;
+        studio.sessions.push(session);
+        studio.observe_document(false);
+        let quality = studio.sessions[0].project.hint_quality;
+        // 1. keyer: despill, hint quality; 2. timeline: split; 3. range; 4. scene override.
+        studio.sessions[0].project.despill_settings.amount = 0.6;
+        studio.sessions[0].project.hint_quality = ck_desktop_core::HintQuality::Loose;
+        studio.observe_document(false);
+        studio.split_scene();
+        studio.observe_document(false);
+        studio.sessions[0].range = FrameRange {
+            start: 10,
+            end_exclusive: 60,
+        };
+        studio.observe_document(false);
+        assert!(set_scene_despill(
+            &mut studio.sessions[0].project,
+            1,
+            Some(0.3)
+        ));
+        studio.observe_document(false);
+        let after = studio.doc_snapshot().unwrap();
+
+        // Garbage tab with no mask edits: nothing changes.
+        studio.undo_in(AppContext::Mask);
+        assert_eq!(studio.doc_snapshot().unwrap(), after);
+
+        // Inspector: the override is newest there, then the keyer settings; scenes stay split.
+        studio.undo_in(AppContext::Keyer);
+        assert!(studio.sessions[0].project.scene_overrides.is_empty());
+        studio.undo_in(AppContext::Keyer);
+        let session = &studio.sessions[0];
+        assert_eq!(session.project.despill_settings.amount, 0.0);
+        assert_eq!(session.project.hint_quality, quality);
+        assert_eq!(session.project.scenes.len(), 2);
+        assert_eq!(session.range.start, 10);
+
+        // Timeline: the range, then the split; keyer settings stay undone, nothing else moves.
+        studio.undo_in(AppContext::Timeline);
+        assert_eq!(studio.sessions[0].range.start, 0);
+        studio.undo_in(AppContext::Timeline);
+        assert_eq!(studio.sessions[0].project.scenes.len(), 1);
+
+        // Redo everything back.
+        for context in [
+            AppContext::Timeline,
+            AppContext::Timeline,
+            AppContext::Keyer,
+            AppContext::Keyer,
+        ] {
+            studio.redo_in(context);
+        }
+        assert_eq!(studio.doc_snapshot().unwrap(), after);
+    }
+
+    #[test]
     fn ctrl_z_over_the_inspector_restores_the_previous_despill_amount() {
         let ctx = egui::Context::default();
         ctx.set_pixels_per_point(1.0);
@@ -9671,8 +9899,9 @@ mod tests {
         studio.sessions.push(session);
         studio.inspector_rect =
             Rect::from_min_size(Pos2::new(500.0, 100.0), Vec2::new(200.0, 80.0));
-        studio.record_app_edit(crate::app_history::AppContext::Keyer, "despill");
+        studio.observe_document(false);
         studio.sessions[0].project.despill_settings.amount = 0.75;
+        studio.observe_document(false);
         let pointer = Pos2::new(550.0, 150.0);
         let _ = ctx.run(
             egui::RawInput {
