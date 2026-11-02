@@ -23,13 +23,19 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not $Zip) { $Zip = Join-Path $root "dist\BRP-ChromaKey2-$Version-windows-x64.zip" }
 if (-not (Test-Path -LiteralPath $Zip)) { throw "Release zip not found: $Zip (run tools/package.ps1 -Version $Version)" }
-if ($NotesFile) { $Notes = Get-Content -Raw -Encoding UTF8 $NotesFile }
+if ($NotesFile) { $Notes = [IO.File]::ReadAllText((Resolve-Path -LiteralPath $NotesFile).Path) }
 if (-not $env:GITHUB_TOKEN) { throw 'Set $env:GITHUB_TOKEN (contents:write on the repository).' }
 $headers = @{
     Accept = 'application/vnd.github+json'; 'User-Agent' = 'brp-chromakey2-publish'
     'X-GitHub-Api-Version' = '2022-11-28'; Authorization = "Bearer $($env:GITHUB_TOKEN)"
 }
-$body = @{ tag_name = "v$Version"; name = "BRP ChromaKey2 $Version"; body = $Notes; draft = $true } | ConvertTo-Json
+# Tag the exact commit the zip was built from, and only once GitHub has it.
+$commit = (git -C $root rev-parse HEAD).Trim()
+git -C $root fetch --quiet origin
+if (-not (git -C $root branch --remotes --contains $commit)) {
+    throw "Commit $commit is not on GitHub yet. Push it (git push) before publishing."
+}
+$body = @{ tag_name = "v$Version"; target_commitish = $commit; name = "BRP ChromaKey2 $Version"; body = $Notes; draft = $true } | ConvertTo-Json
 $release = Invoke-RestMethod -Method Post -Headers $headers -Uri "https://api.github.com/repos/$Repository/releases" -Body $body -ContentType 'application/json'
 $name = [IO.Path]::GetFileName($Zip)
 $upload = ($release.upload_url -replace '\{.*\}$', '') + "?name=$([uri]::EscapeDataString($name))"
