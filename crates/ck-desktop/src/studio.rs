@@ -995,6 +995,10 @@ impl MaskExportStatus {
         self.written
             .store(written, std::sync::atomic::Ordering::Relaxed);
     }
+    /// True until the export thread reports its result (a poisoned lock counts as finished).
+    fn running(&self) -> bool {
+        self.done.lock().is_ok_and(|done| done.is_none())
+    }
     fn finish(&self, result: Result<usize, String>, first: u64) {
         if let Ok(mut done) = self.done.lock() {
             *done = Some((result, first));
@@ -4679,7 +4683,11 @@ impl Studio {
             let scene = session.project.scene_of_frame(session.playhead);
             session.project.layers_in_scene(scene).len()
         });
-        let can_export = self.export_masks.is_none()
+        // Only a running export blocks a new one; a finished export keeps its result line.
+        let can_export = !self
+            .export_masks
+            .as_ref()
+            .is_some_and(|status| status.running())
             && self.current().is_some_and(|session| {
                 session.scene_frames_at_playhead().any(|frame| {
                     session
@@ -9736,6 +9744,19 @@ mod tests {
             |ctx| studio.input(ctx),
         );
         assert_eq!(studio.sessions[0].range, original);
+    }
+
+    #[test]
+    fn a_finished_mask_export_no_longer_blocks_the_next_one() {
+        let status = MaskExportStatus::new(3);
+        assert!(status.running());
+        status.progress(3);
+        assert!(status.running());
+        status.finish(Ok(3), 0);
+        assert!(!status.running());
+        let failed = MaskExportStatus::new(1);
+        failed.finish(Err("disk full".into()), 0);
+        assert!(!failed.running());
     }
 
     #[test]
